@@ -19,7 +19,7 @@ export const DEFAULT_PERSONAL_INFO: PersonalInfo = {
   detailedBio: `Hello! I'm Naim Hossain, a Software Developer & Architect based in San Francisco. With over 7 years of professional experience, I bridge the gap between high-performance backends and delightful frontend user interfaces.
 
 My philosophy centers around crafting applications that feel native, responsive, and tactile. Whether building complex cloud management dashboards, cross-platform mobile apps, or high-throughput microservices, I prioritize scalable clean architecture and visual perfection.`,
-  avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80',
+  avatarUrl: 'https://vlmqlcqecamgxaelrlbp.supabase.co/storage/v1/object/public/images/avatars/1784798089149-50ki24.png',
   location: 'San Francisco, CA (Open to Remote)',
   email: 'alex@rivera.dev',
   phone: '+1 (555) 382-9014',
