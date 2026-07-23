@@ -1,17 +1,20 @@
 import React, { useState } from 'react';
 import { usePortfolio } from '../../context/PortfolioContext';
 import { ProjectCategory, ProjectItem } from '../../types';
-import { Search, ExternalLink, Github, Star, Filter, FolderGit2, X, Award } from 'lucide-react';
+import { Search, ExternalLink, Github, Star, Filter, FolderGit2, X, Award, Image, Video, Link, Ban, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const CATEGORIES: (ProjectCategory | 'All')[] = [
   'All', 'Full-Stack', 'Mobile App', 'Frontend', 'Cloud & Systems', 'Open Source'
 ];
 
 export const ProjectsApp: React.FC = () => {
-  const { projects } = usePortfolio();
+  const { projects, t } = usePortfolio();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<ProjectCategory | 'All'>('All');
   const [activeProject, setActiveProject] = useState<ProjectItem | null>(null);
+  const [mediaModal, setMediaModal] = useState<ProjectItem | null>(null);
+  const [mediaIndex, setMediaIndex] = useState(0);
+  const [sourceNotAllowed, setSourceNotAllowed] = useState('');
 
   const filteredProjects = projects.filter((p) => {
     const mCat = selectedCategory === 'All' || p.category === selectedCategory;
@@ -20,6 +23,16 @@ export const ProjectsApp: React.FC = () => {
       (p.techStack || []).some((t) => t.toLowerCase().includes(searchTerm.toLowerCase()));
     return mCat && mSearch;
   });
+
+  const openMediaModal = (p: ProjectItem) => {
+    setMediaModal(p);
+    setMediaIndex(0);
+  };
+
+  const allMedia = mediaModal ? [
+    ...(mediaModal.imageUrl ? [{ type: 'image' as const, url: mediaModal.imageUrl }] : []),
+    ...mediaModal.media,
+  ] : [];
 
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-6 text-white">
@@ -108,8 +121,8 @@ export const ProjectsApp: React.FC = () => {
       {/* Detail Modal */}
       {activeProject && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 rounded-2xl border border-white/10 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl p-6 space-y-5 relative animate-in fade-in zoom-in-95">
-            <button onClick={() => setActiveProject(null)}
+          <div className="bg-slate-900 rounded-2xl border border-white/10 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl p-6 space-y-5 relative">
+            <button onClick={() => { setActiveProject(null); setSourceNotAllowed(''); }}
               className="absolute top-4 right-4 p-2 rounded-full bg-white/10 text-slate-400 hover:text-white transition z-10">
               <X className="w-4 h-4" />
             </button>
@@ -133,19 +146,94 @@ export const ProjectsApp: React.FC = () => {
               </div>
             </div>
             <div className="flex items-center gap-3 pt-3 border-t border-white/10">
-              {activeProject.demoUrl && (
-                <a href={activeProject.demoUrl} target="_blank" rel="noreferrer"
-                  className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-xl transition shadow-md">
-                  <ExternalLink className="w-4 h-4" />
-                  Live Demo
-                </a>
+              <button onClick={() => openMediaModal(activeProject)}
+                className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-xl transition shadow-md">
+                <ExternalLink className="w-4 h-4" />
+                Live Demo
+              </button>
+              <button onClick={() => setSourceNotAllowed('Source code is not publicly available for this project.')}
+                className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white font-semibold text-sm rounded-xl transition border border-white/10">
+                <Github className="w-4 h-4" />
+                Source Code
+              </button>
+            </div>
+            {sourceNotAllowed && (
+              <div className="flex items-center gap-2 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+                <Ban className="w-4 h-4 text-amber-400 shrink-0" />
+                <p className="text-xs text-amber-300">{sourceNotAllowed}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Media Popup — shows images/videos/links for the project */}
+      {mediaModal && (
+        <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 rounded-2xl border border-white/10 max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl relative">
+            <button onClick={() => setMediaModal(null)}
+              className="absolute top-4 right-4 p-2 rounded-full bg-black/60 text-white hover:bg-black/80 transition z-10">
+              <X className="w-4 h-4" />
+            </button>
+
+            <div className="p-6 space-y-5">
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <Image className="w-5 h-5 text-blue-400" />
+                {mediaModal.title} — Gallery
+              </h2>
+
+              {/* Media Slideshow */}
+              {allMedia.length > 0 && (
+                <div className="relative rounded-xl overflow-hidden bg-slate-800">
+                  <div className="relative aspect-video flex items-center justify-center bg-slate-800">
+                    {allMedia[mediaIndex]?.type === 'video' ? (
+                      <video src={allMedia[mediaIndex].url} controls className="w-full h-full object-contain" />
+                    ) : (
+                      <img src={allMedia[mediaIndex].url} alt="" className="w-full h-full object-contain" />
+                    )}
+                  </div>
+                  {allMedia.length > 1 && (
+                    <>
+                      <button onClick={() => setMediaIndex((i) => (i - 1 + allMedia.length) % allMedia.length)}
+                        className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/60 text-white hover:bg-black/80 transition">
+                        <ChevronLeft className="w-5 h-5" />
+                      </button>
+                      <button onClick={() => setMediaIndex((i) => (i + 1) % allMedia.length)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/60 text-white hover:bg-black/80 transition">
+                        <ChevronRight className="w-5 h-5" />
+                      </button>
+                      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+                        {allMedia.map((_, i) => (
+                          <button key={i} onClick={() => setMediaIndex(i)}
+                            className={`w-2 h-2 rounded-full transition ${i === mediaIndex ? 'bg-blue-400' : 'bg-white/40'}`} />
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
               )}
-              {activeProject.githubUrl && (
-                <a href={activeProject.githubUrl} target="_blank" rel="noreferrer"
-                  className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white font-semibold text-sm rounded-xl transition border border-white/10">
-                  <Github className="w-4 h-4" />
-                  Source Code
-                </a>
+
+              {/* External Links */}
+              {mediaModal.links && mediaModal.links.length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="text-[11px] font-bold uppercase text-slate-400 tracking-wider flex items-center gap-1.5">
+                    <Link className="w-3.5 h-3.5" />
+                    Related Links
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {mediaModal.links.map((link, i) => (
+                      <a key={i} href={link.url} target="_blank" rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 text-blue-300 text-xs font-semibold rounded-lg border border-blue-500/20 hover:bg-blue-500/20 transition">
+                        <ExternalLink className="w-3 h-3" />
+                        {link.label}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {allMedia.length === 0 && (!mediaModal.links || mediaModal.links.length === 0) && (
+                <p className="text-sm text-slate-400 text-center py-8">No media or links available for this project.</p>
               )}
             </div>
           </div>

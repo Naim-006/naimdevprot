@@ -53,6 +53,16 @@ export interface SkillItem {
 
 export type ProjectCategory = 'Full-Stack' | 'Mobile App' | 'Frontend' | 'Cloud & Systems' | 'Open Source';
 
+export interface ProjectMedia {
+  type: 'image' | 'video';
+  url: string;
+}
+
+export interface ProjectLink {
+  label: string;
+  url: string;
+}
+
 export interface ProjectItem {
   id: string;
   title: string;
@@ -61,6 +71,8 @@ export interface ProjectItem {
   category: ProjectCategory;
   techStack: string[];
   imageUrl: string;
+  media: ProjectMedia[];
+  links: ProjectLink[];
   demoUrl?: string;
   githubUrl?: string;
   featured: boolean;
@@ -103,6 +115,7 @@ export interface ContactMessage {
   id: string;
   senderName: string;
   senderEmail: string;
+  whatsapp: string;
   subject: string;
   message: string;
   createdAt: string;
@@ -129,8 +142,6 @@ export interface OSSettings {
   osMode: OSMode;
   soundEnabled: boolean;
   darkMode: boolean;
-  adminUsername: string;
-  adminPasswordHash: string;
   visitorCount: number;
 }
 

@@ -1,25 +1,35 @@
 import React, { useState } from 'react';
 import { usePortfolio } from '../../context/PortfolioContext';
-import { Mail, Phone, MapPin, Send, CheckCircle, Info, MessageSquare } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, CheckCircle, Info, MessageSquare, Smartphone } from 'lucide-react';
 import { IconHelper } from '../common/IconHelper';
+
+const WHATSAPP_REGEX = /^\+[1-9]\d{1,3}\d{6,14}$/;
 
 export const ContactApp: React.FC = () => {
   const { personalInfo, sendMessage } = usePortfolio();
-  const [formData, setFormData] = useState({ senderName: '', senderEmail: '', subject: '', message: '' });
+  const [formData, setFormData] = useState({ senderName: '', senderEmail: '', whatsapp: '', subject: '', message: '' });
   const [submitted, setSubmitted] = useState(false);
+  const [whatsappError, setWhatsappError] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.senderName || !formData.senderEmail || !formData.message) return;
+    if (!formData.senderName || !formData.senderEmail || !formData.whatsapp || !formData.message) return;
+    if (!WHATSAPP_REGEX.test(formData.whatsapp)) {
+      setWhatsappError('Enter a valid number: +[country code][number] (e.g. +8801712345678)');
+      return;
+    }
+    setWhatsappError('');
     sendMessage(formData);
     setSubmitted(true);
-    setFormData({ senderName: '', senderEmail: '', subject: '', message: '' });
+    setFormData({ senderName: '', senderEmail: '', whatsapp: '', subject: '', message: '' });
     setTimeout(() => setSubmitted(false), 5000);
   };
 
   const socialIcons: Record<string, string> = {
     github: 'Github', linkedin: 'Linkedin', twitter: 'Twitter', devto: 'Globe', website: 'Globe'
   };
+
+  const phoneIsWhatsApp = personalInfo.phone && /^\+/.test(personalInfo.phone);
 
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-8 text-white">
@@ -65,6 +75,15 @@ export const ContactApp: React.FC = () => {
                 </div>
               </div>
               <div className="space-y-1">
+                <label className="text-[11px] font-semibold text-slate-400">WhatsApp Number *</label>
+                <input type="text" required value={formData.whatsapp}
+                  onChange={(e) => { setFormData({ ...formData, whatsapp: e.target.value }); setWhatsappError(''); }}
+                  placeholder="+8801712345678"
+                  className={`w-full px-3.5 py-2 rounded-xl bg-white/10 border text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 ${whatsappError ? 'border-red-500' : 'border-white/10'}`} />
+                {whatsappError && <p className="text-[10px] text-red-400">{whatsappError}</p>}
+                <p className="text-[10px] text-slate-500">Format: +country code and number </p>
+              </div>
+              <div className="space-y-1">
                 <label className="text-[11px] font-semibold text-slate-400">Subject</label>
                 <input type="text" value={formData.subject}
                   onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
@@ -97,14 +116,21 @@ export const ContactApp: React.FC = () => {
             <div className="space-y-2.5 text-xs">
               {[
                 { icon: Mail, color: 'text-cyan-400', label: 'Email', value: personalInfo.email },
-                { icon: Phone, color: 'text-emerald-400', label: 'Phone', value: personalInfo.phone },
+                ...(personalInfo.phone ? [{ icon: phoneIsWhatsApp ? Smartphone : Phone, color: 'text-emerald-400' as const, label: phoneIsWhatsApp ? 'WhatsApp / Phone' : 'Phone', value: personalInfo.phone }] : []),
                 { icon: MapPin, color: 'text-purple-400', label: 'Location', value: personalInfo.location },
               ].map((item) => (
                 <div key={item.label} className="flex items-center gap-2.5 p-2.5 rounded-xl bg-white/5">
                   <item.icon className={`w-4 h-4 ${item.color} shrink-0`} />
                   <div className="min-w-0">
                     <div className="text-[10px] text-slate-500">{item.label}</div>
-                    <div className="font-semibold text-white truncate">{item.value}</div>
+                    {item.label === 'WhatsApp / Phone' || item.label === 'Phone' ? (
+                      <a href={`https://wa.me/${personalInfo.phone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noreferrer"
+                        className="font-semibold text-emerald-300 hover:text-emerald-200 truncate block">
+                        {item.value}
+                      </a>
+                    ) : (
+                      <div className="font-semibold text-white truncate">{item.value}</div>
+                    )}
                   </div>
                 </div>
               ))}

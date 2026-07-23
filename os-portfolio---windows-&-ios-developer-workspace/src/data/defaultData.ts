@@ -19,7 +19,7 @@ export const DEFAULT_PERSONAL_INFO: PersonalInfo = {
   detailedBio: `Hello! I'm Naim Hossain, a Software Developer & Architect based in San Francisco. With over 7 years of professional experience, I bridge the gap between high-performance backends and delightful frontend user interfaces.
 
 My philosophy centers around crafting applications that feel native, responsive, and tactile. Whether building complex cloud management dashboards, cross-platform mobile apps, or high-throughput microservices, I prioritize scalable clean architecture and visual perfection.`,
-  avatarUrl: 'https://vlmqlcqecamgxaelrlbp.supabase.co/storage/v1/object/public/images/avatars/1784798089149-50ki24.png',
+  avatarUrl: '',
   location: 'San Francisco, CA (Open to Remote)',
   email: 'alex@rivera.dev',
   phone: '+1 (555) 382-9014',
@@ -78,7 +78,9 @@ export const DEFAULT_PROJECTS: ProjectItem[] = [
     fullDesc: 'An ambitious browser-based operating system UI that emulates native desktop experience. Built with React, TypeScript, and Motion, it features draggable windows, taskbar system tray, file browser, terminal emulator, and custom cloud widgets.',
     category: 'Full-Stack',
     techStack: ['React 19', 'TypeScript', 'Tailwind CSS', 'Motion', 'Express'],
-    imageUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80',
+    imageUrl: '',
+    media: [],
+    links: [],
     demoUrl: '#',
     githubUrl: '#',
     featured: true,
@@ -92,7 +94,9 @@ export const DEFAULT_PROJECTS: ProjectItem[] = [
     fullDesc: 'PulseFit empowers fitness enthusiasts to monitor physical metrics in real time. Designed with iOS Human Interface Guidelines in mind, featuring haptic feedback, dark mode optics, offline persistence, and interactive chart visualizations.',
     category: 'Mobile App',
     techStack: ['React Native', 'Expo', 'Recharts', 'TypeScript', 'Node.js'],
-    imageUrl: 'https://images.unsplash.com/photo-1510519138161-58446232811f?auto=format&fit=crop&w=800&q=80',
+    imageUrl: '',
+    media: [],
+    links: [],
     demoUrl: '#',
     githubUrl: '#',
     featured: true,
@@ -106,7 +110,9 @@ export const DEFAULT_PROJECTS: ProjectItem[] = [
     fullDesc: 'Nexus Gateway sits in front of distributed services to handle security, request caching, rate throttling, and telemetry. Tested under heavy synthetic load handling 25,000 requests/sec with minimal latency overhead.',
     category: 'Cloud & Systems',
     techStack: ['Node.js', 'Express', 'Redis', 'Docker', 'PostgreSQL'],
-    imageUrl: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=800&q=80',
+    imageUrl: '',
+    media: [],
+    links: [],
     demoUrl: '#',
     githubUrl: '#',
     featured: true,
@@ -120,7 +126,9 @@ export const DEFAULT_PROJECTS: ProjectItem[] = [
     fullDesc: 'A fast visual space built for remote engineering teams. Supports realtime websocket cursors, canvas zooming/panning, diagram export, and AI diagram generation.',
     category: 'Frontend',
     techStack: ['React', 'HTML5 Canvas', 'WebSockets', 'Tailwind CSS'],
-    imageUrl: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&w=800&q=80',
+    imageUrl: '',
+    media: [],
+    links: [],
     demoUrl: '#',
     githubUrl: '#',
     featured: false,
@@ -134,7 +142,9 @@ export const DEFAULT_PROJECTS: ProjectItem[] = [
     fullDesc: 'Custom Node.js binary CLI tool used by over 10,000 developers. Features interactive prompt menus, color logs, fast template generation, and automated GitHub release checks.',
     category: 'Open Source',
     techStack: ['TypeScript', 'Node.js', 'Commander.js', 'Esbuild'],
-    imageUrl: 'https://images.unsplash.com/photo-1629654297299-c8506221ca97?auto=format&fit=crop&w=800&q=80',
+    imageUrl: '',
+    media: [],
+    links: [],
     demoUrl: 'https://example.com/cybercli',
     githubUrl: 'https://github.com/example/cybercli',
     featured: true,
@@ -209,7 +219,7 @@ export const DEFAULT_TESTIMONIALS: TestimonialItem[] = [
     clientName: 'Sarah Jenkins',
     role: 'VP of Product',
     company: 'Apex Tech Systems',
-    avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=300&q=80',
+    avatarUrl: '',
     quote: 'Alex is an exceptional engineer. His ability to deliver complex OS-grade user experiences with speed and precision is unmatched. Highly recommended!',
     rating: 5
   },
@@ -218,7 +228,7 @@ export const DEFAULT_TESTIMONIALS: TestimonialItem[] = [
     clientName: 'Marcus Vance',
     role: 'Founder & CEO',
     company: 'PulseFit Labs',
-    avatarUrl: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=300&q=80',
+    avatarUrl: '',
     quote: 'Working with Alex on our iOS app launch was seamless. He translated our design specs into smooth, responsive React Native code faster than expected.',
     rating: 5
   },
@@ -227,7 +237,7 @@ export const DEFAULT_TESTIMONIALS: TestimonialItem[] = [
     clientName: 'Elena Rostova',
     role: 'Engineering Director',
     company: 'Vanguard Labs',
-    avatarUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=300&q=80',
+    avatarUrl: '',
     quote: 'Alex brings craftsmanship and deep technical rigor. He is the developer every team dreams of having.',
     rating: 5
   }
@@ -238,6 +248,7 @@ export const DEFAULT_MESSAGES: ContactMessage[] = [
     id: 'm1',
     senderName: 'David Miller',
     senderEmail: 'david@enterprise.io',
+    whatsapp: '+14155551234',
     subject: 'Inquiry regarding Senior Architect Role',
     message: 'Hi Alex, loved your portfolio OS design! We have an exciting lead full-stack position for our cloud platform. Would love to schedule a call.',
     createdAt: '2026-07-20T14:22:00Z',
@@ -247,6 +258,7 @@ export const DEFAULT_MESSAGES: ContactMessage[] = [
     id: 'm2',
     senderName: 'Jessica Taylor',
     senderEmail: 'jessica@studio.design',
+    whatsapp: '+8801712345678',
     subject: 'Freelance Project Consultation',
     message: 'Hey Alex! We need a high-end web app with custom desktop-like drag and drop interactions for a client campaign. Are you open for freelance work next month?',
     createdAt: '2026-07-18T09:15:00Z',
@@ -269,7 +281,7 @@ export const DEFAULT_BLOGS: BlogPost[] = [
 3. **Responsive Degradation**: Gracefully adapting desktop layouts into mobile tabbed/sheet experiences.`,
     readTime: '5 min read',
     date: 'July 15, 2026',
-    coverImage: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=800&q=80',
+    coverImage: '',
     published: true
   },
   {
@@ -283,7 +295,7 @@ export const DEFAULT_BLOGS: BlogPost[] = [
 In this benchmark study, we test gesture responsiveness, cold boot time, and memory footprint across complex dashboard applications.`,
     readTime: '8 min read',
     date: 'June 28, 2026',
-    coverImage: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=800&q=80',
+    coverImage: '',
     published: true
   }
 ];
@@ -295,8 +307,6 @@ export const DEFAULT_SETTINGS: OSSettings = {
   osMode: 'auto',
   soundEnabled: true,
   darkMode: true,
-  adminUsername: 'admin',
-  adminPasswordHash: 'admin123',
   visitorCount: 1284
 };
 

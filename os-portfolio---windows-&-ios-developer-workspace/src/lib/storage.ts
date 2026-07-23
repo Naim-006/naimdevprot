@@ -6,7 +6,7 @@ export type UploadResult = { url: string; path: string } | null;
 
 export async function uploadImage(
   file: File,
-  folder: 'avatars' | 'projects' | 'blogs' | 'covers'
+  folder: 'avatars' | 'projects' | 'blogs' | 'covers' | 'testimonials'
 ): Promise<UploadResult> {
   const ext = file.name.split('.').pop() || 'png';
   const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`;

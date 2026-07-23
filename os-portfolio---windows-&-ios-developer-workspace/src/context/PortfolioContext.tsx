@@ -28,7 +28,6 @@ import {
 } from '../data/defaultData';
 import { soundEngine } from '../utils/sound';
 import { supabase } from '../lib/supabase';
-import { loginWithEmail, logout as supabaseLogout } from '../lib/auth';
 import { db } from '../lib/db';
 
 export interface ToastNotification {
@@ -140,7 +139,7 @@ interface PortfolioContextType {
   updateTestimonial: (id: string, test: Partial<TestimonialItem>) => Promise<void>;
   deleteTestimonial: (id: string) => Promise<void>;
 
-  sendMessage: (msg: { senderName: string; senderEmail: string; subject: string; message: string }) => Promise<void>;
+  sendMessage: (msg: { senderName: string; senderEmail: string; whatsapp: string; subject: string; message: string }) => Promise<void>;
   markMessageRead: (id: string) => Promise<void>;
   deleteMessage: (id: string) => Promise<void>;
 
@@ -155,19 +154,6 @@ interface PortfolioContextType {
 }
 
 const PortfolioContext = createContext<PortfolioContextType | undefined>(undefined);
-
-const STORAGE_KEYS = {
-  PERSONAL_INFO: 'os_portfolio_personal',
-  SKILLS: 'os_portfolio_skills',
-  PROJECTS: 'os_portfolio_projects',
-  EXPERIENCE: 'os_portfolio_exp',
-  EDUCATION: 'os_portfolio_edu',
-  TESTIMONIALS: 'os_portfolio_testimonials',
-  MESSAGES: 'os_portfolio_messages',
-  BLOGS: 'os_portfolio_blogs',
-  SETTINGS: 'os_portfolio_settings',
-  ADMIN_AUTH: 'os_portfolio_admin_auth'
-};
 
 const createInitialWindows = (): Record<AppId, WindowState> => {
   const initial: Partial<Record<AppId, WindowState>> = {};
@@ -207,12 +193,11 @@ export const PortfolioProvider: React.FC<{ children: ReactNode }> = ({ children 
   const [settings, setSettingsState] = useState<OSSettings>(DEFAULT_SETTINGS);
   const [dataLoaded, setDataLoaded] = useState(false);
 
-  // Load all data from Supabase on mount
+  // Load all data from Supabase on mount (single source of truth)
   useEffect(() => {
     let cancelled = false;
     const loadData = async () => {
       try {
-        // Try Supabase first
         const [pi, sk, pr, ex, ed, te, me, bl, se] = await Promise.allSettled([
           db.personalInfo.getAll(),
           db.skills.getAll(),
@@ -236,31 +221,9 @@ export const PortfolioProvider: React.FC<{ children: ReactNode }> = ({ children 
         if (me.status === 'fulfilled') setMessages(me.value as unknown as ContactMessage[]);
         if (bl.status === 'fulfilled') setBlogs(bl.value as unknown as BlogPost[]);
         if (se.status === 'fulfilled' && se.value.length > 0) setSettingsState(se.value[0] as unknown as OSSettings);
-      } catch {
-        // Supabase failed — restore from localStorage fallback
+      } catch (err) {
+        console.error('Failed to load data from Supabase:', err);
       }
-
-      // Always apply localStorage fallback for any empty data
-      try {
-        const savedPI = localStorage.getItem(STORAGE_KEYS.PERSONAL_INFO);
-        if (savedPI) setPersonalInfo((prev) => prev === DEFAULT_PERSONAL_INFO ? JSON.parse(savedPI) : prev);
-        const savedSK = localStorage.getItem(STORAGE_KEYS.SKILLS);
-        if (savedSK) setSkills((prev) => prev.length === 0 ? JSON.parse(savedSK) : prev);
-        const savedPR = localStorage.getItem(STORAGE_KEYS.PROJECTS);
-        if (savedPR) setProjects((prev) => prev.length === 0 ? JSON.parse(savedPR) : prev);
-        const savedEX = localStorage.getItem(STORAGE_KEYS.EXPERIENCE);
-        if (savedEX) setExperience((prev) => prev.length === 0 ? JSON.parse(savedEX) : prev);
-        const savedED = localStorage.getItem(STORAGE_KEYS.EDUCATION);
-        if (savedED) setEducation((prev) => prev.length === 0 ? JSON.parse(savedED) : prev);
-        const savedTE = localStorage.getItem(STORAGE_KEYS.TESTIMONIALS);
-        if (savedTE) setTestimonials((prev) => prev.length === 0 ? JSON.parse(savedTE) : prev);
-        const savedME = localStorage.getItem(STORAGE_KEYS.MESSAGES);
-        if (savedME) setMessages((prev) => prev.length === 0 ? JSON.parse(savedME) : prev);
-        const savedBL = localStorage.getItem(STORAGE_KEYS.BLOGS);
-        if (savedBL) setBlogs((prev) => prev.length === 0 ? JSON.parse(savedBL) : prev);
-        const savedSE = localStorage.getItem(STORAGE_KEYS.SETTINGS);
-        if (savedSE) setSettingsState((prev) => JSON.parse(savedSE));
-      } catch {}
 
       setDataLoaded(true);
     };
@@ -269,29 +232,18 @@ export const PortfolioProvider: React.FC<{ children: ReactNode }> = ({ children 
   }, []);
 
   const [notifications, setNotifications] = useState<ToastNotification[]>([]);
-  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(() => {
-    return localStorage.getItem(STORAGE_KEYS.ADMIN_AUTH) === 'true';
-  });
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(false);
 
-  // Check Supabase session on mount for admin auth
+  // Check Supabase session on mount for admin auth (single source of truth)
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) {
-        setIsAdminAuthenticated(true);
-        localStorage.setItem(STORAGE_KEYS.ADMIN_AUTH, 'true');
-      }
+      setIsAdminAuthenticated(!!data.session);
     });
   }, []);
 
   useEffect(() => {
     const { data: listener } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'SIGNED_IN') {
-        setIsAdminAuthenticated(true);
-        localStorage.setItem(STORAGE_KEYS.ADMIN_AUTH, 'true');
-      } else if (event === 'SIGNED_OUT') {
-        setIsAdminAuthenticated(false);
-        localStorage.removeItem(STORAGE_KEYS.ADMIN_AUTH);
-      }
+      setIsAdminAuthenticated(event === 'SIGNED_IN');
     });
     return () => listener?.subscription?.unsubscribe();
   }, []);
@@ -387,16 +339,7 @@ export const PortfolioProvider: React.FC<{ children: ReactNode }> = ({ children 
         : 'desktop'
       : settings.osMode;
 
-  // Persist to localStorage as fallback cache
-  useEffect(() => { localStorage.setItem(STORAGE_KEYS.PERSONAL_INFO, JSON.stringify(personalInfo)); }, [personalInfo]);
-  useEffect(() => { localStorage.setItem(STORAGE_KEYS.SKILLS, JSON.stringify(skills)); }, [skills]);
-  useEffect(() => { localStorage.setItem(STORAGE_KEYS.PROJECTS, JSON.stringify(projects)); }, [projects]);
-  useEffect(() => { localStorage.setItem(STORAGE_KEYS.EXPERIENCE, JSON.stringify(experience)); }, [experience]);
-  useEffect(() => { localStorage.setItem(STORAGE_KEYS.EDUCATION, JSON.stringify(education)); }, [education]);
-  useEffect(() => { localStorage.setItem(STORAGE_KEYS.TESTIMONIALS, JSON.stringify(testimonials)); }, [testimonials]);
-  useEffect(() => { localStorage.setItem(STORAGE_KEYS.MESSAGES, JSON.stringify(messages)); }, [messages]);
-  useEffect(() => { localStorage.setItem(STORAGE_KEYS.BLOGS, JSON.stringify(blogs)); }, [blogs]);
-  useEffect(() => { localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings)); }, [settings]);
+  // Note: DB is the single source of truth. No localStorage caching.
 
   // Notifications helper
   const showToast = (title: string, message: string) => {
@@ -582,224 +525,251 @@ export const PortfolioProvider: React.FC<{ children: ReactNode }> = ({ children 
     showToast('OS Mode Changed', `Switched view mode to ${mode.toUpperCase()}`);
   };
 
-  // Admin Auth
+  // Admin Auth (pure Supabase Auth — single source of truth)
   const loginAdmin = async (user: string, pass: string): Promise<boolean> => {
-    // Try Supabase Auth first
     try {
-      const { data } = await supabase.auth.signInWithPassword({ email: user, password: pass });
+      const { data, error } = await supabase.auth.signInWithPassword({ email: user, password: pass });
+      if (error) throw error;
       if (data.session) {
         setIsAdminAuthenticated(true);
-        localStorage.setItem(STORAGE_KEYS.ADMIN_AUTH, 'true');
         showToast('Admin Logged In', 'Welcome back, Administrator.');
         return true;
       }
     } catch {
-      // Fallback to localStorage
-      if (user === settings.adminUsername && pass === settings.adminPasswordHash) {
-        setIsAdminAuthenticated(true);
-        localStorage.setItem(STORAGE_KEYS.ADMIN_AUTH, 'true');
-        showToast('Admin Logged In', 'Welcome back, Administrator.');
-        return true;
-      }
+      // Auth failed
     }
-    showToast('Authentication Error', 'Invalid username or password.');
+    showToast('Authentication Error', 'Invalid email or password.');
     return false;
   };
 
   const logoutAdmin = async () => {
     await supabase.auth.signOut().catch(() => {});
     setIsAdminAuthenticated(false);
-    localStorage.removeItem(STORAGE_KEYS.ADMIN_AUTH);
     showToast('Admin Session', 'Logged out of admin panel.');
   };
 
-  // CRUD Operations — try Supabase first, always update local state
+  // CRUD Operations — DB is the single source of truth
+  const handleDbError = (err: unknown, label: string) => {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(`DB ${label}:`, err);
+    showToast('Database Error', `${label}: ${msg}`);
+  };
+
   const updatePersonalInfo = async (info: PersonalInfo) => {
     setPersonalInfo(info);
-    if (dataLoaded) {
-      try { await db.personalInfo.update(1, info as unknown as Record<string, unknown>); } catch { /* tables may not exist yet */ }
-    }
-    showToast(t('notif.profileUpdated'), '');
+    try {
+      await db.personalInfo.update(1, info as unknown as Record<string, unknown>);
+      showToast(t('notif.profileUpdated'), '');
+    } catch (err) { handleDbError(err, 'Failed to save profile'); }
   };
 
   const addSkill = async (skill: Omit<SkillItem, 'id'>) => {
-    const withId = { ...skill, id: generateUniqueId() };
-    if (dataLoaded) {
-      try { const inserted = await db.skills.insert(withId as unknown as Record<string, unknown>); if (inserted) { setSkills((prev) => [inserted as unknown as SkillItem, ...prev]); return; } } catch {}
-    }
-    setSkills((prev) => [withId as SkillItem, ...prev]);
-    showToast(t('notif.skillAdded'), '');
+    try {
+      const inserted = await db.skills.insert(skill as unknown as Record<string, unknown>);
+      setSkills((prev) => [inserted as unknown as SkillItem, ...prev]);
+      showToast(t('notif.skillAdded'), '');
+    } catch (err) { handleDbError(err, 'Failed to add skill'); }
   };
 
   const updateSkill = async (id: string, updated: Partial<SkillItem>) => {
-    setSkills((prev) => prev.map((s) => (s.id === id ? { ...s, ...updated } : s)));
-    if (dataLoaded) { try { await db.skills.update(id, updated as unknown as Record<string, unknown>); } catch {} }
-    showToast(t('notif.skillAdded'), '');
+    try {
+      await db.skills.update(id, updated as unknown as Record<string, unknown>);
+      setSkills((prev) => prev.map((s) => (s.id === id ? { ...s, ...updated } : s)));
+      showToast(t('notif.skillAdded'), '');
+    } catch (err) { handleDbError(err, 'Failed to update skill'); }
   };
 
   const deleteSkill = async (id: string) => {
-    setSkills((prev) => prev.filter((s) => s.id !== id));
-    if (dataLoaded) { try { await db.skills.remove(id); } catch {} }
-    showToast(t('notif.skillRemoved'), '');
+    try {
+      await db.skills.remove(id);
+      setSkills((prev) => prev.filter((s) => s.id !== id));
+      showToast(t('notif.skillRemoved'), '');
+    } catch (err) { handleDbError(err, 'Failed to delete skill'); }
   };
 
   const addProject = async (project: Omit<ProjectItem, 'id'>) => {
-    const withId = { ...project, id: generateUniqueId() };
-    if (dataLoaded) {
-      try { const inserted = await db.projects.insert(withId as unknown as Record<string, unknown>); if (inserted) { setProjects((prev) => [inserted as unknown as ProjectItem, ...prev]); return; } } catch {}
-    }
-    setProjects((prev) => [withId as ProjectItem, ...prev]);
-    showToast(t('notif.projectPublished'), '');
+    try {
+      const inserted = await db.projects.insert(project as unknown as Record<string, unknown>);
+      setProjects((prev) => [inserted as unknown as ProjectItem, ...prev]);
+      showToast(t('notif.projectPublished'), '');
+    } catch (err) { handleDbError(err, 'Failed to add project'); }
   };
 
   const updateProject = async (id: string, updated: Partial<ProjectItem>) => {
-    setProjects((prev) => prev.map((p) => (p.id === id ? { ...p, ...updated } : p)));
-    if (dataLoaded) { try { await db.projects.update(id, updated as unknown as Record<string, unknown>); } catch {} }
-    showToast(t('notif.projectPublished'), '');
+    try {
+      await db.projects.update(id, updated as unknown as Record<string, unknown>);
+      setProjects((prev) => prev.map((p) => (p.id === id ? { ...p, ...updated } : p)));
+      showToast(t('notif.projectPublished'), '');
+    } catch (err) { handleDbError(err, 'Failed to update project'); }
   };
 
   const deleteProject = async (id: string) => {
-    setProjects((prev) => prev.filter((p) => p.id !== id));
-    if (dataLoaded) { try { await db.projects.remove(id); } catch {} }
-    showToast(t('notif.projectDeleted'), '');
+    try {
+      await db.projects.remove(id);
+      setProjects((prev) => prev.filter((p) => p.id !== id));
+      showToast(t('notif.projectDeleted'), '');
+    } catch (err) { handleDbError(err, 'Failed to delete project'); }
   };
 
   const addExperience = async (exp: Omit<ExperienceItem, 'id'>) => {
-    const withId = { ...exp, id: generateUniqueId() };
-    if (dataLoaded) {
-      try { const inserted = await db.experience.insert(withId as unknown as Record<string, unknown>); if (inserted) { setExperience((prev) => [inserted as unknown as ExperienceItem, ...prev]); return; } } catch {}
-    }
-    setExperience((prev) => [withId as ExperienceItem, ...prev]);
-    showToast(t('notif.experienceAdded'), '');
+    try {
+      const inserted = await db.experience.insert(exp as unknown as Record<string, unknown>);
+      setExperience((prev) => [inserted as unknown as ExperienceItem, ...prev]);
+      showToast(t('notif.experienceAdded'), '');
+    } catch (err) { handleDbError(err, 'Failed to add experience'); }
   };
 
   const updateExperience = async (id: string, updated: Partial<ExperienceItem>) => {
-    setExperience((prev) => prev.map((e) => (e.id === id ? { ...e, ...updated } : e)));
-    if (dataLoaded) { try { await db.experience.update(id, updated as unknown as Record<string, unknown>); } catch {} }
-    showToast(t('notif.experienceAdded'), '');
+    try {
+      await db.experience.update(id, updated as unknown as Record<string, unknown>);
+      setExperience((prev) => prev.map((e) => (e.id === id ? { ...e, ...updated } : e)));
+      showToast(t('notif.experienceAdded'), '');
+    } catch (err) { handleDbError(err, 'Failed to update experience'); }
   };
 
   const deleteExperience = async (id: string) => {
-    setExperience((prev) => prev.filter((e) => e.id !== id));
-    if (dataLoaded) { try { await db.experience.remove(id); } catch {} }
-    showToast(t('notif.experienceAdded'), '');
+    try {
+      await db.experience.remove(id);
+      setExperience((prev) => prev.filter((e) => e.id !== id));
+      showToast(t('notif.experienceAdded'), '');
+    } catch (err) { handleDbError(err, 'Failed to delete experience'); }
   };
 
   const addEducation = async (edu: Omit<EducationItem, 'id'>) => {
-    const withId = { ...edu, id: generateUniqueId() };
-    if (dataLoaded) {
-      try { const inserted = await db.education.insert(withId as unknown as Record<string, unknown>); if (inserted) { setEducation((prev) => [inserted as unknown as EducationItem, ...prev]); return; } } catch {}
-    }
-    setEducation((prev) => [withId as EducationItem, ...prev]);
-    showToast(t('notif.experienceAdded'), '');
+    try {
+      const inserted = await db.education.insert(edu as unknown as Record<string, unknown>);
+      setEducation((prev) => [inserted as unknown as EducationItem, ...prev]);
+      showToast(t('notif.experienceAdded'), '');
+    } catch (err) { handleDbError(err, 'Failed to add education'); }
   };
 
   const updateEducation = async (id: string, updated: Partial<EducationItem>) => {
-    setEducation((prev) => prev.map((e) => (e.id === id ? { ...e, ...updated } : e)));
-    if (dataLoaded) { try { await db.education.update(id, updated as unknown as Record<string, unknown>); } catch {} }
-    showToast(t('notif.experienceAdded'), '');
+    try {
+      await db.education.update(id, updated as unknown as Record<string, unknown>);
+      setEducation((prev) => prev.map((e) => (e.id === id ? { ...e, ...updated } : e)));
+      showToast(t('notif.experienceAdded'), '');
+    } catch (err) { handleDbError(err, 'Failed to update education'); }
   };
 
   const deleteEducation = async (id: string) => {
-    setEducation((prev) => prev.filter((e) => e.id !== id));
-    if (dataLoaded) { try { await db.education.remove(id); } catch {} }
-    showToast(t('notif.experienceAdded'), '');
+    try {
+      await db.education.remove(id);
+      setEducation((prev) => prev.filter((e) => e.id !== id));
+      showToast(t('notif.experienceAdded'), '');
+    } catch (err) { handleDbError(err, 'Failed to delete education'); }
   };
 
   const addTestimonial = async (test: Omit<TestimonialItem, 'id'>) => {
-    const withId = { ...test, id: generateUniqueId() };
-    if (dataLoaded) {
-      try { const inserted = await db.testimonials.insert(withId as unknown as Record<string, unknown>); if (inserted) { setTestimonials((prev) => [inserted as unknown as TestimonialItem, ...prev]); return; } } catch {}
-    }
-    setTestimonials((prev) => [withId as TestimonialItem, ...prev]);
-    showToast(t('notif.experienceAdded'), '');
+    try {
+      const inserted = await db.testimonials.insert(test as unknown as Record<string, unknown>);
+      setTestimonials((prev) => [inserted as unknown as TestimonialItem, ...prev]);
+      showToast(t('notif.experienceAdded'), '');
+    } catch (err) { handleDbError(err, 'Failed to add testimonial'); }
   };
 
   const updateTestimonial = async (id: string, updated: Partial<TestimonialItem>) => {
-    setTestimonials((prev) => prev.map((t) => (t.id === id ? { ...t, ...updated } : t)));
-    if (dataLoaded) { try { await db.testimonials.update(id, updated as unknown as Record<string, unknown>); } catch {} }
-    showToast(t('notif.experienceAdded'), '');
+    try {
+      await db.testimonials.update(id, updated as unknown as Record<string, unknown>);
+      setTestimonials((prev) => prev.map((t) => (t.id === id ? { ...t, ...updated } : t)));
+      showToast(t('notif.experienceAdded'), '');
+    } catch (err) { handleDbError(err, 'Failed to update testimonial'); }
   };
 
   const deleteTestimonial = async (id: string) => {
-    setTestimonials((prev) => prev.filter((t) => t.id !== id));
-    if (dataLoaded) { try { await db.testimonials.remove(id); } catch {} }
-    showToast(t('notif.experienceAdded'), '');
+    try {
+      await db.testimonials.remove(id);
+      setTestimonials((prev) => prev.filter((t) => t.id !== id));
+      showToast(t('notif.experienceAdded'), '');
+    } catch (err) { handleDbError(err, 'Failed to delete testimonial'); }
   };
 
-  const sendMessage = async (msg: { senderName: string; senderEmail: string; subject: string; message: string }) => {
-    const newMsg: ContactMessage = { ...msg, id: generateUniqueId(), createdAt: new Date().toISOString(), read: false };
-    if (dataLoaded) {
-      try { const inserted = await db.contactMessages.insert(newMsg as unknown as Record<string, unknown>); if (inserted) { setMessages((prev) => [inserted as unknown as ContactMessage, ...prev]); return; } } catch {}
-    }
-    setMessages((prev) => [newMsg, ...prev]);
-    showToast(t('notif.messageSent'), '');
+  const sendMessage = async (msg: { senderName: string; senderEmail: string; whatsapp: string; subject: string; message: string }) => {
+    try {
+      const inserted = await db.contactMessages.insert({
+        ...msg,
+        createdAt: new Date().toISOString(),
+        read: false,
+      } as unknown as Record<string, unknown>);
+      setMessages((prev) => [inserted as unknown as ContactMessage, ...prev]);
+      showToast(t('notif.messageSent'), '');
+    } catch (err) { handleDbError(err, 'Failed to send message'); }
   };
 
   const markMessageRead = async (id: string) => {
-    setMessages((prev) => prev.map((m) => (m.id === id ? { ...m, read: true } : m)));
-    if (dataLoaded) { try { await db.contactMessages.update(id, { read: true } as unknown as Record<string, unknown>); } catch {} }
+    try {
+      await db.contactMessages.update(id, { read: true } as unknown as Record<string, unknown>);
+      setMessages((prev) => prev.map((m) => (m.id === id ? { ...m, read: true } : m)));
+    } catch (err) { handleDbError(err, 'Failed to mark message read'); }
   };
 
   const deleteMessage = async (id: string) => {
-    setMessages((prev) => prev.filter((m) => m.id !== id));
-    if (dataLoaded) { try { await db.contactMessages.remove(id); } catch {} }
-    showToast(t('notif.messageDeleted'), '');
+    try {
+      await db.contactMessages.remove(id);
+      setMessages((prev) => prev.filter((m) => m.id !== id));
+      showToast(t('notif.messageDeleted'), '');
+    } catch (err) { handleDbError(err, 'Failed to delete message'); }
   };
 
   const addBlog = async (blog: Omit<BlogPost, 'id'>) => {
-    const withId = { ...blog, id: generateUniqueId() };
-    if (dataLoaded) {
-      try { const inserted = await db.blogPosts.insert(withId as unknown as Record<string, unknown>); if (inserted) { setBlogs((prev) => [inserted as unknown as BlogPost, ...prev]); return; } } catch {}
-    }
-    setBlogs((prev) => [withId as BlogPost, ...prev]);
-    showToast(t('notif.projectPublished'), '');
+    try {
+      const inserted = await db.blogPosts.insert(blog as unknown as Record<string, unknown>);
+      setBlogs((prev) => [inserted as unknown as BlogPost, ...prev]);
+      showToast(t('notif.projectPublished'), '');
+    } catch (err) { handleDbError(err, 'Failed to add blog post'); }
   };
 
   const updateBlog = async (id: string, updated: Partial<BlogPost>) => {
-    setBlogs((prev) => prev.map((b) => (b.id === id ? { ...b, ...updated } : b)));
-    if (dataLoaded) { try { await db.blogPosts.update(id, updated as unknown as Record<string, unknown>); } catch {} }
-    showToast(t('notif.projectPublished'), '');
+    try {
+      await db.blogPosts.update(id, updated as unknown as Record<string, unknown>);
+      setBlogs((prev) => prev.map((b) => (b.id === id ? { ...b, ...updated } : b)));
+      showToast(t('notif.projectPublished'), '');
+    } catch (err) { handleDbError(err, 'Failed to update blog post'); }
   };
 
   const deleteBlog = async (id: string) => {
-    setBlogs((prev) => prev.filter((b) => b.id !== id));
-    if (dataLoaded) { try { await db.blogPosts.remove(id); } catch {} }
-    showToast(t('notif.projectPublished'), '');
+    try {
+      await db.blogPosts.remove(id);
+      setBlogs((prev) => prev.filter((b) => b.id !== id));
+      showToast(t('notif.projectPublished'), '');
+    } catch (err) { handleDbError(err, 'Failed to delete blog post'); }
   };
 
   const updateSettings = async (newSettings: Partial<OSSettings>) => {
-    setSettingsState((prev) => ({ ...prev, ...newSettings }));
-    if (dataLoaded) { try { await db.settings.update(1, newSettings as unknown as Record<string, unknown>); } catch {} }
-    showToast(t('notif.settingsSaved'), '');
+    try {
+      await db.settings.update(1, newSettings as unknown as Record<string, unknown>);
+      setSettingsState((prev) => ({ ...prev, ...newSettings }));
+      showToast(t('notif.settingsSaved'), '');
+    } catch (err) { handleDbError(err, 'Failed to save settings'); }
   };
 
   const resetAllData = async () => {
-    localStorage.clear();
-    setPersonalInfo(DEFAULT_PERSONAL_INFO);
-    setSkills(DEFAULT_SKILLS);
-    setProjects(DEFAULT_PROJECTS);
-    setExperience(DEFAULT_EXPERIENCE);
-    setEducation(DEFAULT_EDUCATION);
-    setTestimonials(DEFAULT_TESTIMONIALS);
-    setMessages(DEFAULT_MESSAGES);
-    setBlogs(DEFAULT_BLOGS);
-    setSettingsState(DEFAULT_SETTINGS);
     setIsAdminAuthenticated(false);
-    // Also clear Supabase
+    // Clear all tables in Supabase
     if (dataLoaded) {
       try {
-        await supabase.from('personal_info').delete().neq('id', 0);
-        await supabase.from('skills').delete().neq('id', '');
-        await supabase.from('projects').delete().neq('id', '');
-        await supabase.from('experience').delete().neq('id', '');
-        await supabase.from('education').delete().neq('id', '');
-        await supabase.from('testimonials').delete().neq('id', '');
-        await supabase.from('contact_messages').delete().neq('id', '');
-        await supabase.from('blog_posts').delete().neq('id', '');
-        await supabase.from('settings').delete().neq('id', 0);
-      } catch {}
+        await db.personalInfo.clear();
+        await db.skills.clear();
+        await db.projects.clear();
+        await db.experience.clear();
+        await db.education.clear();
+        await db.testimonials.clear();
+        await db.contactMessages.clear();
+        await db.blogPosts.clear();
+        await db.settings.clear();
+      } catch (err) {
+        console.error('Failed to reset data:', err);
+      }
     }
+    // Reset to defaults
+    setPersonalInfo(DEFAULT_PERSONAL_INFO);
+    setSkills([]);
+    setProjects([]);
+    setExperience([]);
+    setEducation([]);
+    setTestimonials([]);
+    setMessages([]);
+    setBlogs([]);
+    setSettingsState(DEFAULT_SETTINGS);
     showToast(t('notif.dataReset'), '');
   };
 
@@ -812,7 +782,7 @@ export const PortfolioProvider: React.FC<{ children: ReactNode }> = ({ children 
       education,
       testimonials,
       blogs,
-      settings: { ...settings, adminPasswordHash: '***' }
+      settings: { ...settings }
     };
     return JSON.stringify(fullData, null, 2);
   };
@@ -820,13 +790,52 @@ export const PortfolioProvider: React.FC<{ children: ReactNode }> = ({ children 
   const importJSONData = async (jsonStr: string): Promise<boolean> => {
     try {
       const parsed = JSON.parse(jsonStr);
-      if (parsed.personalInfo) { setPersonalInfo(parsed.personalInfo); if (dataLoaded) try { await db.personalInfo.update(1, parsed.personalInfo); } catch {} }
-      if (parsed.skills) { setSkills(parsed.skills); /* could iterate and insert each */ }
-      if (parsed.projects) { setProjects(parsed.projects); }
-      if (parsed.experience) { setExperience(parsed.experience); }
-      if (parsed.education) { setEducation(parsed.education); }
-      if (parsed.testimonials) { setTestimonials(parsed.testimonials); }
-      if (parsed.blogs) { setBlogs(parsed.blogs); }
+      if (parsed.personalInfo) {
+        setPersonalInfo(parsed.personalInfo);
+        if (dataLoaded) await db.personalInfo.update(1, parsed.personalInfo).catch(() => {});
+      }
+      if (parsed.skills) {
+        setSkills(parsed.skills);
+        if (dataLoaded) {
+          await db.skills.clear();
+          for (const skill of parsed.skills) { await db.skills.insert(skill).catch(() => {}); }
+        }
+      }
+      if (parsed.projects) {
+        setProjects(parsed.projects);
+        if (dataLoaded) {
+          await db.projects.clear();
+          for (const project of parsed.projects) { await db.projects.insert(project).catch(() => {}); }
+        }
+      }
+      if (parsed.experience) {
+        setExperience(parsed.experience);
+        if (dataLoaded) {
+          await db.experience.clear();
+          for (const exp of parsed.experience) { await db.experience.insert(exp).catch(() => {}); }
+        }
+      }
+      if (parsed.education) {
+        setEducation(parsed.education);
+        if (dataLoaded) {
+          await db.education.clear();
+          for (const edu of parsed.education) { await db.education.insert(edu).catch(() => {}); }
+        }
+      }
+      if (parsed.testimonials) {
+        setTestimonials(parsed.testimonials);
+        if (dataLoaded) {
+          await db.testimonials.clear();
+          for (const test of parsed.testimonials) { await db.testimonials.insert(test).catch(() => {}); }
+        }
+      }
+      if (parsed.blogs) {
+        setBlogs(parsed.blogs);
+        if (dataLoaded) {
+          await db.blogPosts.clear();
+          for (const blog of parsed.blogs) { await db.blogPosts.insert(blog).catch(() => {}); }
+        }
+      }
       showToast(t('notif.importSuccess'), '');
       return true;
     } catch {

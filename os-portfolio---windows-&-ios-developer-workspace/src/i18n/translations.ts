@@ -102,7 +102,7 @@ export const TRANSLATIONS: LangTranslations = {
     'spot.skills': 'Skills',
 
     // Tour
-    'tour.welcome': 'Welcome to Portfolio OS!',
+    'tour.welcome': 'Welcome to Nun OS!',
     'tour.welcomeDesc': 'This interactive OS-themed portfolio showcases my work as a full-stack developer.',
     'tour.desktop': 'Desktop Environment',
     'tour.desktopDesc': 'Open apps from desktop icons or the taskbar. Drag, resize, and snap windows like a real OS.',
@@ -192,7 +192,7 @@ export const TRANSLATIONS: LangTranslations = {
     'term.title': 'CLI Terminal',
     'term.help': 'Available commands:',
     'term.unknown': 'command not found',
-    'term.welcome': 'Welcome to Portfolio OS Terminal',
+    'term.welcome': 'Welcome to Nun OS Terminal',
     'term.typeHelp': 'Type "help" for available commands.',
 
     // Settings App

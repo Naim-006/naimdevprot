@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { usePortfolio } from '../../context/PortfolioContext';
 import { ImageUpload } from '../common/ImageUpload';
+import { uploadImage } from '../../lib/storage';
 import {
   Shield,
   Key,
@@ -24,9 +25,11 @@ import {
   EyeOff,
   Star,
   CheckCircle2,
-  Lock
+  Lock,
+  Image,
+  Link
 } from 'lucide-react';
-import { ProjectItem, SkillItem, ExperienceItem, EducationItem, TestimonialItem, BlogPost } from '../../types';
+import { ProjectItem, ProjectMedia, ProjectLink, SkillItem, ExperienceItem, EducationItem, TestimonialItem, BlogPost } from '../../types';
 
 export const AdminApp: React.FC = () => {
   const {
@@ -55,6 +58,7 @@ export const AdminApp: React.FC = () => {
     addEducation,
     deleteEducation,
     addTestimonial,
+    updateTestimonial,
     deleteTestimonial,
     markMessageRead,
     deleteMessage,
@@ -85,6 +89,7 @@ export const AdminApp: React.FC = () => {
   const [editingBlog, setEditingBlog] = useState<Partial<BlogPost> | null>(null);
   const [importJsonText, setImportJsonText] = useState('');
   const [newPass, setNewPass] = useState('');
+  const [uploadingMedia, setUploadingMedia] = useState<number | null>(null);
 
   if (!isAdminAuthenticated) {
     return (
@@ -283,7 +288,7 @@ export const AdminApp: React.FC = () => {
                     fullDesc: '',
                     category: 'Full-Stack',
                     techStack: ['React', 'TypeScript'],
-                    imageUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80',
+                    imageUrl: '',
                     featured: true,
                     date: '2026-07'
                   });
@@ -503,7 +508,9 @@ export const AdminApp: React.FC = () => {
                   fullDesc: '',
                   category: 'Full-Stack',
                   techStack: ['React', 'TypeScript'],
-                  imageUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80',
+                  imageUrl: '',
+                  media: [],
+                  links: [],
                   featured: true,
                   date: '2026-07'
                 })
@@ -524,21 +531,15 @@ export const AdminApp: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs font-semibold">Title</label>
-                  <input
-                    type="text"
-                    value={editingProject.title || ''}
+                  <input type="text" value={editingProject.title || ''}
                     onChange={(e) => setEditingProject({ ...editingProject, title: e.target.value })}
-                    className="w-full mt-1 p-2 bg-white dark:bg-slate-700 rounded-lg text-xs border border-slate-200 dark:border-slate-600"
-                  />
+                    className="w-full mt-1 p-2 bg-white dark:bg-slate-700 rounded-lg text-xs border border-slate-200 dark:border-slate-600" />
                 </div>
-
                 <div>
                   <label className="text-xs font-semibold">Category</label>
-                  <select
-                    value={editingProject.category || 'Full-Stack'}
+                  <select value={editingProject.category || 'Full-Stack'}
                     onChange={(e) => setEditingProject({ ...editingProject, category: e.target.value as any })}
-                    className="w-full mt-1 p-2 bg-white dark:bg-slate-700 rounded-lg text-xs border border-slate-200 dark:border-slate-600"
-                  >
+                    className="w-full mt-1 p-2 bg-white dark:bg-slate-700 rounded-lg text-xs border border-slate-200 dark:border-slate-600">
                     <option value="Full-Stack">Full-Stack</option>
                     <option value="Mobile App">Mobile App</option>
                     <option value="Frontend">Frontend</option>
@@ -546,73 +547,167 @@ export const AdminApp: React.FC = () => {
                     <option value="Open Source">Open Source</option>
                   </select>
                 </div>
-
-                <ImageUpload
-                  currentUrl={editingProject.imageUrl || ''}
-                  folder="projects"
-                  onUrlChange={(url) => setEditingProject({ ...editingProject, imageUrl: url })}
-                  label="Project Image"
-                />
-
+                <ImageUpload currentUrl={editingProject.imageUrl || ''} folder="projects"
+                  onUrlChange={(url) => setEditingProject({ ...editingProject, imageUrl: url })} label="Cover Image" />
                 <div>
                   <label className="text-xs font-semibold">Tech Stack (comma separated)</label>
-                  <input
-                    type="text"
-                    value={editingProject.techStack ? editingProject.techStack.join(', ') : ''}
-                    onChange={(e) =>
-                      setEditingProject({
-                        ...editingProject,
-                        techStack: e.target.value.split(',').map((s) => s.trim())
-                      })
-                    }
-                    className="w-full mt-1 p-2 bg-white dark:bg-slate-700 rounded-lg text-xs border border-slate-200 dark:border-slate-600"
-                  />
+                  <input type="text" value={editingProject.techStack ? editingProject.techStack.join(', ') : ''}
+                    onChange={(e) => setEditingProject({ ...editingProject, techStack: e.target.value.split(',').map((s) => s.trim()) })}
+                    className="w-full mt-1 p-2 bg-white dark:bg-slate-700 rounded-lg text-xs border border-slate-200 dark:border-slate-600" />
                 </div>
               </div>
 
               <div>
                 <label className="text-xs font-semibold">Short Description</label>
-                <input
-                  type="text"
-                  value={editingProject.shortDesc || ''}
+                <input type="text" value={editingProject.shortDesc || ''}
                   onChange={(e) => setEditingProject({ ...editingProject, shortDesc: e.target.value })}
-                  className="w-full mt-1 p-2 bg-white dark:bg-slate-700 rounded-lg text-xs border border-slate-200 dark:border-slate-600"
-                />
+                  className="w-full mt-1 p-2 bg-white dark:bg-slate-700 rounded-lg text-xs border border-slate-200 dark:border-slate-600" />
               </div>
-
               <div>
                 <label className="text-xs font-semibold">Full Description</label>
-                <textarea
-                  rows={3}
-                  value={editingProject.fullDesc || ''}
+                <textarea rows={3} value={editingProject.fullDesc || ''}
                   onChange={(e) => setEditingProject({ ...editingProject, fullDesc: e.target.value })}
-                  className="w-full mt-1 p-2 bg-white dark:bg-slate-700 rounded-lg text-xs border border-slate-200 dark:border-slate-600 resize-none"
-                />
+                  className="w-full mt-1 p-2 bg-white dark:bg-slate-700 rounded-lg text-xs border border-slate-200 dark:border-slate-600 resize-none" />
+              </div>
+
+              {/* Media Gallery — uploaded to Supabase Storage */}
+              <div className="border-t border-slate-200 dark:border-slate-700 pt-4">
+                <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+                  <Image className="w-4 h-4 text-blue-500" />
+                  Media Gallery (images & videos)
+                </h4>
+                <div className="space-y-2">
+                  {((editingProject as any).media || []).map((m: ProjectMedia, i: number) => (
+                    <div key={i} className="flex items-center gap-2 p-2 bg-white/5 rounded-lg">
+                      <span className="text-[10px] font-mono text-slate-400 w-12">{m.type}</span>
+                      {m.url ? (
+                        <div className="flex-1 flex items-center gap-2">
+                          {m.type === 'video' ? (
+                            <video src={m.url} className="w-12 h-8 rounded object-cover" />
+                          ) : (
+                            <img src={m.url} className="w-12 h-8 rounded object-cover" />
+                          )}
+                          <span className="text-[10px] text-slate-400 truncate flex-1">{m.url.split('/').pop()}</span>
+                        </div>
+                      ) : (
+                        <span className="flex-1 text-[10px] text-slate-500 italic">No file uploaded</span>
+                      )}
+                      <label className="px-2 py-1 bg-slate-600 hover:bg-slate-500 disabled:opacity-50 text-white text-[10px] font-bold rounded-lg cursor-pointer transition">
+                        {uploadingMedia === i ? 'Uploading...' : 'Choose File'}
+                        <input type="file" accept={m.type === 'video' ? 'video/*' : 'image/*'} className="hidden" disabled={uploadingMedia !== null}
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file || uploadingMedia !== null) return;
+                            setUploadingMedia(i);
+                            const result = await uploadImage(file, 'projects');
+                            setUploadingMedia(null);
+                            if (result) {
+                              const media = [...((editingProject as any).media || [])];
+                              media[i] = { ...media[i], url: result.url };
+                              setEditingProject({ ...editingProject, media } as any);
+                            }
+                          }} />
+                      </label>
+                      <button onClick={() => {
+                        const media = [...((editingProject as any).media || [])];
+                        media.splice(i, 1);
+                        setEditingProject({ ...editingProject, media } as any);
+                      }} className="p-1 text-rose-500 hover:bg-rose-50 rounded"><Trash2 className="w-3.5 h-3.5" /></button>
+                    </div>
+                  ))}
+                  <div className="flex gap-2">
+                    <button onClick={() => setEditingProject({
+                      ...editingProject,
+                      media: [...((editingProject as any).media || []), { type: 'image', url: '' }]
+                    } as any)}
+                      className="px-3 py-1.5 bg-blue-600 text-white text-[10px] font-bold rounded-lg hover:bg-blue-700 transition">+ Image</button>
+                    <button onClick={() => setEditingProject({
+                      ...editingProject,
+                      media: [...((editingProject as any).media || []), { type: 'video', url: '' }]
+                    } as any)}
+                      className="px-3 py-1.5 bg-purple-600 text-white text-[10px] font-bold rounded-lg hover:bg-purple-700 transition">+ Video</button>
+                  </div>
+                </div>
+              </div>
+
+              {/* External Links */}
+              <div className="border-t border-slate-200 dark:border-slate-700 pt-4">
+                <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+                  <Link className="w-4 h-4 text-emerald-500" />
+                  External Links (shown in gallery popup)
+                </h4>
+                <div className="space-y-2">
+                  {((editingProject as any).links || []).map((link: ProjectLink, i: number) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <input type="text" value={link.label} placeholder="Label"
+                        onChange={(e) => {
+                          const links = [...((editingProject as any).links || [])];
+                          links[i] = { ...links[i], label: e.target.value };
+                          setEditingProject({ ...editingProject, links } as any);
+                        }}
+                        className="w-28 p-2 bg-white dark:bg-slate-700 rounded-lg text-xs border border-slate-200 dark:border-slate-600" />
+                      <input type="text" value={link.url} placeholder="https://..."
+                        onChange={(e) => {
+                          const links = [...((editingProject as any).links || [])];
+                          links[i] = { ...links[i], url: e.target.value };
+                          setEditingProject({ ...editingProject, links } as any);
+                        }}
+                        className="flex-1 p-2 bg-white dark:bg-slate-700 rounded-lg text-xs border border-slate-200 dark:border-slate-600" />
+                      <button onClick={() => {
+                        const links = [...((editingProject as any).links || [])];
+                        links.splice(i, 1);
+                        setEditingProject({ ...editingProject, links } as any);
+                      }} className="p-1 text-rose-500 hover:bg-rose-50 rounded"><Trash2 className="w-3.5 h-3.5" /></button>
+                    </div>
+                  ))}
+                  <button onClick={() => setEditingProject({
+                    ...editingProject,
+                    links: [...((editingProject as any).links || []), { label: '', url: '' }]
+                  } as any)}
+                    className="px-3 py-1.5 bg-emerald-600 text-white text-[10px] font-bold rounded-lg hover:bg-emerald-700 transition">+ Link</button>
+                </div>
+              </div>
+
+              {/* Demo URL + Featured + Date */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-slate-200 dark:border-slate-700 pt-4">
+                <div>
+                  <label className="text-xs font-semibold">Demo URL (optional)</label>
+                  <input type="text" value={editingProject.demoUrl || ''}
+                    onChange={(e) => setEditingProject({ ...editingProject, demoUrl: e.target.value })}
+                    className="w-full mt-1 p-2 bg-white dark:bg-slate-700 rounded-lg text-xs border border-slate-200 dark:border-slate-600" />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold">GitHub URL (optional)</label>
+                  <input type="text" value={editingProject.githubUrl || ''}
+                    onChange={(e) => setEditingProject({ ...editingProject, githubUrl: e.target.value })}
+                    className="w-full mt-1 p-2 bg-white dark:bg-slate-700 rounded-lg text-xs border border-slate-200 dark:border-slate-600" />
+                </div>
+                <div className="flex items-end gap-3">
+                  <div className="flex-1">
+                    <label className="text-xs font-semibold">Date</label>
+                    <input type="text" value={editingProject.date || ''}
+                      onChange={(e) => setEditingProject({ ...editingProject, date: e.target.value })}
+                      className="w-full mt-1 p-2 bg-white dark:bg-slate-700 rounded-lg text-xs border border-slate-200 dark:border-slate-600" />
+                  </div>
+                  <label className="flex items-center gap-2 pb-2 text-xs font-semibold cursor-pointer">
+                    <input type="checkbox" checked={editingProject.featured || false}
+                      onChange={(e) => setEditingProject({ ...editingProject, featured: e.target.checked })}
+                      className="rounded" />
+                    Featured
+                  </label>
+                </div>
               </div>
 
               <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (!editingProject.title) return;
-                    if (editingProject.id) {
-                      updateProject(editingProject.id, editingProject);
-                    } else {
-                      addProject(editingProject as any);
-                    }
-                    setEditingProject(null);
-                  }}
-                  className="px-4 py-2 bg-purple-600 text-white font-bold text-xs rounded-xl shadow-md hover:bg-purple-700 transition"
-                >
-                  Save Project
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setEditingProject(null)}
-                  className="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs rounded-xl"
-                >
-                  Cancel
-                </button>
+                <button type="button" onClick={() => {
+                  if (!editingProject.title) return;
+                  if (editingProject.id) { updateProject(editingProject.id, editingProject); }
+                  else { addProject(editingProject as any); }
+                  setEditingProject(null);
+                }}
+                  className="px-4 py-2 bg-purple-600 text-white font-bold text-xs rounded-xl shadow-md hover:bg-purple-700 transition">Save Project</button>
+                <button type="button" onClick={() => setEditingProject(null)}
+                  className="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs rounded-xl">Cancel</button>
               </div>
             </div>
           )}
@@ -1080,6 +1175,12 @@ export const AdminApp: React.FC = () => {
                     <div>
                       <span className="text-xs font-bold text-slate-900 dark:text-white">{m.senderName}</span>
                       <span className="text-xs text-slate-400 ml-2">({m.senderEmail})</span>
+                      {m.whatsapp && (
+                        <a href={`https://wa.me/${m.whatsapp.replace(/[^0-9]/g, '')}`} target="_blank" rel="noreferrer"
+                          className="text-xs text-emerald-500 ml-2 hover:text-emerald-400 font-semibold">
+                          {m.whatsapp}
+                        </a>
+                      )}
                     </div>
 
                     <div className="flex items-center gap-2 text-[10px] text-slate-400">
