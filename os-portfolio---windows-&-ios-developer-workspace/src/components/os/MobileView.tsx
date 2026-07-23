@@ -92,7 +92,7 @@ export const MobileView: React.FC = () => {
         {/* Dynamic Island */}
         <div className="bg-black text-white px-4 py-1.5 rounded-full flex items-center gap-2 border border-slate-800 shadow-lg">
           <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="text-[10px] font-bold tracking-tight">{personalInfo.name} OS</span>
+          <span className="text-[10px] font-bold tracking-tight">NUN OS</span>
         </div>
 
         <div className="flex items-center gap-1.5">
