@@ -13,7 +13,7 @@ const SOCIAL_ICONS: Record<string, React.ReactNode> = {
   github: <Github className="w-4 h-4" />,
   linkedin: <Linkedin className="w-4 h-4" />,
   twitter: <Twitter className="w-4 h-4" />,
-  devto: <Code className="w-4 h-4" />,
+  devto: <Facebook className="w-4 h-4" />,
   website: <Globe className="w-4 h-4" />,
 };
 
