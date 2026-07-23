@@ -87,24 +87,14 @@ export const MobileView: React.FC = () => {
 
       {/* iOS Status Bar & Dynamic Island */}
       <div className="relative z-30 pt-2 px-6 flex items-center justify-between text-white text-xs font-semibold">
-        <span>{timeStr}</span>
+        
 
         {/* Dynamic Island */}
-        <div className="bg-black text-white px-4 py-1.5 rounded-full flex items-center gap-2 border border-slate-800 shadow-lg">
-          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="text-[10px] font-bold tracking-tight">NUN OS</span>
-        </div>
+        
 
         <div className="flex items-center gap-1.5">
-          <button
-            onClick={openTour}
-            className="p-1 bg-amber-500/20 text-amber-300 rounded-full border border-amber-500/30"
-            title="Portfolio Tour"
-          >
-            <Info className="w-3.5 h-3.5" />
-          </button>
-          <Wifi className="w-3.5 h-3.5" />
-          <Battery className="w-4 h-4 fill-white text-white" />
+          
+          
         </div>
       </div>
 
