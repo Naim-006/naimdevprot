@@ -214,7 +214,10 @@ export const DesktopView: React.FC = () => {
       {contextMenu && (
         <div
           onClick={(e) => e.stopPropagation()}
-          style={{ top: contextMenu.y, left: contextMenu.x }}
+          style={{
+            top: Math.min(contextMenu.y, window.innerHeight - 320),
+            left: Math.min(contextMenu.x, window.innerWidth - 200),
+          }}
           className="fixed bg-[#1f1f23]/95 backdrop-blur-2xl rounded-xl border border-white/20 shadow-2xl p-2 z-50 min-w-44 space-y-1 text-xs select-none animate-in fade-in zoom-in-95 text-white"
         >
           <button
@@ -234,14 +237,6 @@ export const DesktopView: React.FC = () => {
           </button>
 
           <div className="my-1 border-t border-white/10" />
-
-          <button
-            onClick={() => { openTour(); closeContextMenu(); }}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/10 font-medium transition text-amber-300"
-          >
-            <Info className="w-4 h-4 text-amber-400" />
-            <span>{t('ctx.tour')}</span>
-          </button>
 
           <button
             onClick={() => { openWindow('terminal'); closeContextMenu(); }}

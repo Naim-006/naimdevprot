@@ -16,7 +16,7 @@ export const TerminalApp: React.FC = () => {
       output: (
         <div className="space-y-1 text-emerald-400">
           <p className="font-bold">Aether Terminal CLI [Version 2.4.0-release]</p>
-          <p className="text-slate-400">(c) Alex Rivera Portfolio Operating System. All rights reserved.</p>
+          <p className="text-slate-400">(c) Naim Hossain Portfolio Operating System. All rights reserved.</p>
           <p className="text-amber-300 mt-2">Type <span className="underline font-bold">help</span> to list available interactive commands.</p>
         </div>
       )
@@ -157,7 +157,7 @@ export const TerminalApp: React.FC = () => {
         {history.map((item, idx) => (
           <div key={idx} className="space-y-1">
             <div className="flex items-center gap-2 text-slate-400">
-              <span className="text-emerald-500 font-bold">visitor@alex-os</span>
+              <span className="text-emerald-500 font-bold">visitor@naim-os</span>
               <span className="text-slate-600">:</span>
               <span className="text-blue-400">~</span>
               <span className="text-slate-300">$ {item.command}</span>
@@ -171,7 +171,7 @@ export const TerminalApp: React.FC = () => {
 
       {/* Input Form */}
       <form onSubmit={handleCommand} className="flex items-center gap-2 pt-3 border-t border-slate-900 mt-2">
-        <span className="text-emerald-500 font-bold shrink-0">visitor@alex-os:~$</span>
+        <span className="text-emerald-500 font-bold shrink-0">visitor@naim-os:~$</span>
         <input
           type="text"
           value={inputVal}

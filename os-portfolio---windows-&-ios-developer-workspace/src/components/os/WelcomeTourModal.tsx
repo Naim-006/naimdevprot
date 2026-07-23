@@ -1,16 +1,12 @@
 import React, { useState } from 'react';
+import { usePortfolio } from '../../context/PortfolioContext';
 import { Compass, MousePointerClick, Keyboard, Sparkles, X, ChevronRight, ChevronLeft } from 'lucide-react';
 
 export const WelcomeTourModal: React.FC = () => {
+  const { isTourOpen, closeTour } = usePortfolio();
   const [step, setStep] = useState(0);
-  const [dismissed, setDismissed] = useState(() => localStorage.getItem('os_portfolio_has_seen_tour') === 'true');
 
-  if (dismissed) return null;
-
-  const close = () => {
-    setDismissed(true);
-    localStorage.setItem('os_portfolio_has_seen_tour', 'true');
-  };
+  if (!isTourOpen) return null;
 
   const steps = [
     {
@@ -28,7 +24,7 @@ export const WelcomeTourModal: React.FC = () => {
     {
       icon: <Keyboard className="w-6 h-6 text-emerald-400" />,
       title: 'Quick Tips',
-      body: 'Press Ctrl+K to search everything. Use Alt+F4 to close windows. Switch between Desktop and iOS views in Settings.',
+      body: 'Press Ctrl+K to search everything. Use Alt+F4 to close windows. Click an open taskbar app to minimize/restore it.',
       hint: 'All your data lives in the cloud — sign in to the Admin panel to manage it.'
     }
   ];
@@ -36,12 +32,9 @@ export const WelcomeTourModal: React.FC = () => {
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       <div className="w-full max-w-sm bg-[#1a1a1d]/95 border border-white/20 rounded-2xl shadow-2xl backdrop-blur-2xl overflow-hidden">
-        {/* Close */}
-        <button onClick={close} className="absolute top-4 right-4 text-slate-500 hover:text-white transition z-10 p-1">
+        <button onClick={closeTour} className="absolute top-4 right-4 text-slate-500 hover:text-white transition z-10 p-1">
           <X className="w-4 h-4" />
         </button>
-
-        {/* Body */}
         <div className="p-6 pt-10 flex flex-col items-center text-center gap-4">
           <div className="w-14 h-14 rounded-2xl bg-white/10 border border-white/10 flex items-center justify-center">
             {steps[step].icon}
@@ -52,8 +45,6 @@ export const WelcomeTourModal: React.FC = () => {
             <p className="text-[10px] text-slate-500 italic">{steps[step].hint}</p>
           </div>
         </div>
-
-        {/* Footer */}
         <div className="px-6 pb-5 pt-2 flex items-center justify-between">
           <div className="flex gap-1.5">
             {steps.map((_, i) => (
@@ -73,7 +64,7 @@ export const WelcomeTourModal: React.FC = () => {
                 Next <ChevronRight className="w-3 h-3" />
               </button>
             ) : (
-              <button onClick={close}
+              <button onClick={closeTour}
                 className="px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white transition shadow-lg shadow-emerald-600/30 flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5" /> Got it
               </button>

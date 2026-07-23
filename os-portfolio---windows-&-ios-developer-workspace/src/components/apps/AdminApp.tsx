@@ -378,6 +378,26 @@ export const AdminApp: React.FC = () => {
             </div>
 
             <div>
+              <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Phone / WhatsApp</label>
+              <input
+                type="text"
+                value={personalForm.phone}
+                onChange={(e) => setPersonalForm({ ...personalForm, phone: e.target.value })}
+                className="w-full mt-1 p-2 bg-slate-50 dark:bg-slate-700 rounded-lg text-xs border border-slate-200 dark:border-slate-600"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Resume URL</label>
+              <input
+                type="text"
+                value={personalForm.resumeUrl}
+                onChange={(e) => setPersonalForm({ ...personalForm, resumeUrl: e.target.value })}
+                className="w-full mt-1 p-2 bg-slate-50 dark:bg-slate-700 rounded-lg text-xs border border-slate-200 dark:border-slate-600"
+              />
+            </div>
+
+            <div>
               <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Availability Status</label>
               <input
                 type="text"
@@ -406,6 +426,58 @@ export const AdminApp: React.FC = () => {
               onChange={(e) => setPersonalForm({ ...personalForm, detailedBio: e.target.value })}
               className="w-full mt-1 p-2 bg-slate-50 dark:bg-slate-700 rounded-lg text-xs border border-slate-200 dark:border-slate-600 resize-none"
             />
+          </div>
+
+          {/* Social Links */}
+          <div className="border-t border-slate-200 dark:border-slate-700 pt-4">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-3">Social Links</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {(['github', 'linkedin', 'twitter', 'devto', 'website'] as const).map((key) => (
+                <div key={key}>
+                  <label className="text-xs font-semibold text-slate-600 dark:text-slate-300 capitalize">{key} URL</label>
+                  <input
+                    type="text"
+                    value={(personalForm.socials as any)[key] || ''}
+                    onChange={(e) => setPersonalForm({
+                      ...personalForm,
+                      socials: { ...personalForm.socials, [key]: e.target.value }
+                    })}
+                    className="w-full mt-1 p-2 bg-slate-50 dark:bg-slate-700 rounded-lg text-xs border border-slate-200 dark:border-slate-600"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Metrics */}
+          <div className="border-t border-slate-200 dark:border-slate-700 pt-4">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-3">Metrics</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div>
+                <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Years Exp.</label>
+                <input type="number" value={personalForm.metrics.yearsExp}
+                  onChange={(e) => setPersonalForm({ ...personalForm, metrics: { ...personalForm.metrics, yearsExp: Number(e.target.value) } })}
+                  className="w-full mt-1 p-2 bg-slate-50 dark:bg-slate-700 rounded-lg text-xs border border-slate-200 dark:border-slate-600" />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Projects</label>
+                <input type="number" value={personalForm.metrics.projectsCompleted}
+                  onChange={(e) => setPersonalForm({ ...personalForm, metrics: { ...personalForm.metrics, projectsCompleted: Number(e.target.value) } })}
+                  className="w-full mt-1 p-2 bg-slate-50 dark:bg-slate-700 rounded-lg text-xs border border-slate-200 dark:border-slate-600" />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Clients</label>
+                <input type="number" value={personalForm.metrics.satisfiedClients}
+                  onChange={(e) => setPersonalForm({ ...personalForm, metrics: { ...personalForm.metrics, satisfiedClients: Number(e.target.value) } })}
+                  className="w-full mt-1 p-2 bg-slate-50 dark:bg-slate-700 rounded-lg text-xs border border-slate-200 dark:border-slate-600" />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Quality</label>
+                <input type="text" value={personalForm.metrics.codeQualityRating}
+                  onChange={(e) => setPersonalForm({ ...personalForm, metrics: { ...personalForm.metrics, codeQualityRating: e.target.value } })}
+                  className="w-full mt-1 p-2 bg-slate-50 dark:bg-slate-700 rounded-lg text-xs border border-slate-200 dark:border-slate-600" />
+              </div>
+            </div>
           </div>
 
           <button

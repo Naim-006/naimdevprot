@@ -545,6 +545,7 @@ export const PortfolioProvider: React.FC<{ children: ReactNode }> = ({ children 
   const openTour = () => {
     setIsTourOpen(true);
     setIsStartMenuOpen(false);
+    localStorage.removeItem('os_portfolio_has_seen_tour');
   };
 
   const closeTour = () => {

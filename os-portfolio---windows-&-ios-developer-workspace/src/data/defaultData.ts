@@ -12,11 +12,11 @@ import {
 } from '../types';
 
 export const DEFAULT_PERSONAL_INFO: PersonalInfo = {
-  name: 'Alex Rivera',
+  name: 'Naim Hossain',
   title: 'Senior Full-Stack & Mobile Software Architect',
   tagline: 'Designing high-performance web, mobile & cloud systems with OS-grade UI precision.',
   bio: 'Building smooth digital products across web, mobile, and desktop. Specialist in React, Next.js, Node.js, React Native, and Cloud Systems.',
-  detailedBio: `Hello! I'm Alex Rivera, a Software Developer & Architect based in San Francisco. With over 7 years of professional experience, I bridge the gap between high-performance backends and delightful frontend user interfaces.
+  detailedBio: `Hello! I'm Naim Hossain, a Software Developer & Architect based in San Francisco. With over 7 years of professional experience, I bridge the gap between high-performance backends and delightful frontend user interfaces.
 
 My philosophy centers around crafting applications that feel native, responsive, and tactile. Whether building complex cloud management dashboards, cross-platform mobile apps, or high-throughput microservices, I prioritize scalable clean architecture and visual perfection.`,
   avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80',
@@ -289,7 +289,7 @@ In this benchmark study, we test gesture responsiveness, cold boot time, and mem
 ];
 
 export const DEFAULT_SETTINGS: OSSettings = {
-  wallpaper: 'palm-trees',
+  wallpaper: 'win10-hero',
   lockWallpaper: 'ios-fluid',
   accentColor: '#3b82f6',
   osMode: 'auto',

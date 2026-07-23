@@ -124,8 +124,8 @@ create table if not exists public.blog_posts (
 -- 9. SETTINGS (single row)
 create table if not exists public.settings (
   id bigint primary key default 1,
-  wallpaper text not null default 'ocean-dream',
-  lock_wallpaper text not null default 'ios-gradient',
+  wallpaper text not null default 'win10-hero',
+  lock_wallpaper text not null default 'ios-fluid',
   accent_color text not null default '#3b82f6',
   os_mode text not null default 'auto' check (os_mode in ('desktop','mobile','auto')),
   sound_enabled boolean not null default true,
@@ -169,7 +169,26 @@ create trigger set_settings_updated_at
   before update on public.settings for each row execute function public.set_updated_at();
 
 -- =============================================================
--- ROW LEVEL SECURITY
+-- STORAGE BUCKET POLICIES (for image uploads)
+-- =============================================================
+-- Create the images bucket if it doesn't exist
+insert into storage.buckets (id, name, public) values ('images', 'images', true)
+on conflict (id) do nothing;
+
+-- Public read access on storage
+drop policy if exists "Public Read" on storage.objects;
+create policy "Public Read" on storage.objects for select using (bucket_id = 'images');
+
+-- Authenticated users can upload/update/delete
+drop policy if exists "Auth Upload" on storage.objects;
+create policy "Auth Upload" on storage.objects for insert with check (bucket_id = 'images' and auth.role() = 'authenticated');
+drop policy if exists "Auth Update" on storage.objects;
+create policy "Auth Update" on storage.objects for update using (bucket_id = 'images' and auth.role() = 'authenticated');
+drop policy if exists "Auth Delete" on storage.objects;
+create policy "Auth Delete" on storage.objects for delete using (bucket_id = 'images' and auth.role() = 'authenticated');
+
+-- =============================================================
+-- ROW LEVEL SECURITY (database tables)
 -- =============================================================
 -- Enable RLS on all tables
 alter table if exists public.personal_info enable row level security;
@@ -222,10 +241,10 @@ create policy "auth_all_settings" on public.settings for all using (auth.role() 
 
 -- Personal Info
 insert into public.personal_info (id, name, title, tagline, bio, detailed_bio, location, email, phone, availability, resume_url, socials, metrics)
-values (1, 'Alex Rivera', 'Senior Full-Stack & Mobile Software Architect',
+values (1, 'Naim Hossain', 'Senior Full-Stack & Mobile Software Architect',
   'Designing high-performance web, mobile & cloud systems with OS-grade UI precision.',
   'Building smooth digital products across web, mobile, and desktop. Specialist in React, Next.js, Node.js, React Native, and Cloud Systems.',
-  E'Hello! I''m Alex Rivera, a Software Developer & Architect based in San Francisco. With over 7 years of professional experience, I bridge the gap between high-performance backends and delightful frontend user interfaces.\n\nMy philosophy centers around crafting applications that feel native, responsive, and tactile.',
+  E'Hello! I''m Naim Hossain, a Software Developer & Architect based in San Francisco. With over 7 years of professional experience, I bridge the gap between high-performance backends and delightful frontend user interfaces.\n\nMy philosophy centers around crafting applications that feel native, responsive, and tactile.',
   'San Francisco, CA (Open to Remote)', 'alex@rivera.dev', '+1 (555) 382-9014',
   'Available for Select Freelance & Full-time Roles', '#',
   '{"github":"#","linkedin":"#","twitter":"#","devto":"#","website":"#"}',
@@ -325,5 +344,5 @@ insert into public.blog_posts (title, slug, tag, excerpt, content, read_time, da
 
 -- Settings
 insert into public.settings (id, wallpaper, lock_wallpaper, accent_color, os_mode, sound_enabled, dark_mode, admin_username, admin_password_hash)
-values (1, 'ocean-dream', 'ios-gradient', '#3b82f6', 'auto', true, true, 'admin', 'admin123')
+values (1, 'premium-4k', 'ios-fluid', '#3b82f6', 'auto', true, true, 'admin', 'admin123')
 on conflict (id) do nothing;
