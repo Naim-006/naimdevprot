@@ -1,6 +1,7 @@
 import React from 'react';
 import { usePortfolio } from '../../context/PortfolioContext';
-import { WALLPAPERS } from '../../data/defaultData';
+import { WALLPAPERS, WallpaperDef } from '../../data/defaultData';
+import { WallpaperPickerModal } from './WallpaperPickerModal';
 import {
   Volume2, VolumeX, Wifi, WifiOff, Sun, Moon, Settings,
   Bluetooth, BluetoothConnected, Monitor, Accessibility,
@@ -32,6 +33,7 @@ export const ControlCenter: React.FC = () => {
 
   const [bluetoothOn, setBluetoothOn] = React.useState(true);
   const [airplaneMode, setAirplaneMode] = React.useState(false);
+  const [showWpPicker, setShowWpPicker] = React.useState(false);
 
   if (!isControlCenterOpen) return null;
 
@@ -209,28 +211,26 @@ export const ControlCenter: React.FC = () => {
         </div>
 
         {/* Wallpaper Quick Picker */}
-        <div className="bg-white/5 border border-white/10 rounded-xl p-2.5">
+        <button onClick={() => setShowWpPicker(true)}
+          className="bg-white/5 border border-white/10 rounded-xl p-2.5 hover:bg-white/10 transition text-left">
           <div className="text-[9px] font-bold text-slate-400 mb-1">{t('cc.wallpaper')}</div>
           <div className="flex gap-1">
-            {WALLPAPERS.slice(0, 6).map((wp) => {
+            {WALLPAPERS.slice(0, 5).map((wp) => {
               const isGrad = wp.url.startsWith('radial-gradient') || wp.url.startsWith('linear-gradient');
               return (
-                <button
-                  key={wp.id}
-                  onClick={() => updateSettings({ wallpaper: wp.id })}
-                  className={`flex-1 h-7 rounded-md overflow-hidden border ${
-                    settings.wallpaper === wp.id ? 'border-blue-500 ring-1 ring-blue-500/50' : 'border-white/10'
-                  }`}
+                <div key={wp.id}
+                  className={`flex-1 h-7 rounded-md overflow-hidden border ${settings.wallpaper === wp.id ? 'border-blue-500 ring-1 ring-blue-500/50' : 'border-white/10'}`}
                   style={isGrad ? { background: wp.url } : undefined}
-                  title={wp.name}
                 >
-                  {!isGrad && <img src={wp.url} alt={wp.name} className="w-full h-full object-cover" />}
-                </button>
+                  {!isGrad && <img src={wp.url} alt="" className="w-full h-full object-cover" />}
+                </div>
               );
             })}
           </div>
-        </div>
+        </button>
       </div>
+
+      {showWpPicker && <WallpaperPickerModal onClose={() => setShowWpPicker(false)} />}
 
       {/* All Settings Footer */}
       <div className="pt-1">

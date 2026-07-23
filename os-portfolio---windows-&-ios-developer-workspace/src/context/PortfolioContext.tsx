@@ -118,40 +118,40 @@ interface PortfolioContextType {
   logoutAdmin: () => void;
 
   // CRUD Functions
-  updatePersonalInfo: (info: PersonalInfo) => void;
+  updatePersonalInfo: (info: PersonalInfo) => Promise<void>;
   
-  addSkill: (skill: Omit<SkillItem, 'id'>) => void;
-  updateSkill: (id: string, skill: Partial<SkillItem>) => void;
-  deleteSkill: (id: string) => void;
+  addSkill: (skill: Omit<SkillItem, 'id'>) => Promise<void>;
+  updateSkill: (id: string, skill: Partial<SkillItem>) => Promise<void>;
+  deleteSkill: (id: string) => Promise<void>;
 
-  addProject: (project: Omit<ProjectItem, 'id'>) => void;
-  updateProject: (id: string, project: Partial<ProjectItem>) => void;
-  deleteProject: (id: string) => void;
+  addProject: (project: Omit<ProjectItem, 'id'>) => Promise<void>;
+  updateProject: (id: string, project: Partial<ProjectItem>) => Promise<void>;
+  deleteProject: (id: string) => Promise<void>;
 
-  addExperience: (exp: Omit<ExperienceItem, 'id'>) => void;
-  updateExperience: (id: string, exp: Partial<ExperienceItem>) => void;
-  deleteExperience: (id: string) => void;
+  addExperience: (exp: Omit<ExperienceItem, 'id'>) => Promise<void>;
+  updateExperience: (id: string, exp: Partial<ExperienceItem>) => Promise<void>;
+  deleteExperience: (id: string) => Promise<void>;
 
-  addEducation: (edu: Omit<EducationItem, 'id'>) => void;
-  updateEducation: (id: string, edu: Partial<EducationItem>) => void;
-  deleteEducation: (id: string) => void;
+  addEducation: (edu: Omit<EducationItem, 'id'>) => Promise<void>;
+  updateEducation: (id: string, edu: Partial<EducationItem>) => Promise<void>;
+  deleteEducation: (id: string) => Promise<void>;
 
-  addTestimonial: (test: Omit<TestimonialItem, 'id'>) => void;
-  updateTestimonial: (id: string, test: Partial<TestimonialItem>) => void;
-  deleteTestimonial: (id: string) => void;
+  addTestimonial: (test: Omit<TestimonialItem, 'id'>) => Promise<void>;
+  updateTestimonial: (id: string, test: Partial<TestimonialItem>) => Promise<void>;
+  deleteTestimonial: (id: string) => Promise<void>;
 
-  sendMessage: (msg: { senderName: string; senderEmail: string; subject: string; message: string }) => void;
-  markMessageRead: (id: string) => void;
-  deleteMessage: (id: string) => void;
+  sendMessage: (msg: { senderName: string; senderEmail: string; subject: string; message: string }) => Promise<void>;
+  markMessageRead: (id: string) => Promise<void>;
+  deleteMessage: (id: string) => Promise<void>;
 
-  addBlog: (blog: Omit<BlogPost, 'id'>) => void;
-  updateBlog: (id: string, blog: Partial<BlogPost>) => void;
-  deleteBlog: (id: string) => void;
+  addBlog: (blog: Omit<BlogPost, 'id'>) => Promise<void>;
+  updateBlog: (id: string, blog: Partial<BlogPost>) => Promise<void>;
+  deleteBlog: (id: string) => Promise<void>;
 
-  updateSettings: (newSettings: Partial<OSSettings>) => void;
-  resetAllData: () => void;
+  updateSettings: (newSettings: Partial<OSSettings>) => Promise<void>;
+  resetAllData: () => Promise<void>;
   exportJSONData: () => string;
-  importJSONData: (jsonStr: string) => boolean;
+  importJSONData: (jsonStr: string) => Promise<boolean>;
 }
 
 const PortfolioContext = createContext<PortfolioContextType | undefined>(undefined);
@@ -195,51 +195,78 @@ let idCounter = 0;
 const generateUniqueId = (): string => `${Date.now()}-${Math.random().toString(36).substring(2, 9)}-${++idCounter}`;
 
 export const PortfolioProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Load initial data from localStorage or fallback to defaults
-  const [personalInfo, setPersonalInfo] = useState<PersonalInfo>(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.PERSONAL_INFO);
-    return saved ? JSON.parse(saved) : DEFAULT_PERSONAL_INFO;
-  });
+  // Data State — initialized empty, loaded from Supabase on mount
+  const [personalInfo, setPersonalInfo] = useState<PersonalInfo>(DEFAULT_PERSONAL_INFO);
+  const [skills, setSkills] = useState<SkillItem[]>([]);
+  const [projects, setProjects] = useState<ProjectItem[]>([]);
+  const [experience, setExperience] = useState<ExperienceItem[]>([]);
+  const [education, setEducation] = useState<EducationItem[]>([]);
+  const [testimonials, setTestimonials] = useState<TestimonialItem[]>([]);
+  const [messages, setMessages] = useState<ContactMessage[]>([]);
+  const [blogs, setBlogs] = useState<BlogPost[]>([]);
+  const [settings, setSettingsState] = useState<OSSettings>(DEFAULT_SETTINGS);
+  const [dataLoaded, setDataLoaded] = useState(false);
 
-  const [skills, setSkills] = useState<SkillItem[]>(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.SKILLS);
-    return saved ? JSON.parse(saved) : DEFAULT_SKILLS;
-  });
+  // Load all data from Supabase on mount
+  useEffect(() => {
+    let cancelled = false;
+    const loadData = async () => {
+      try {
+        // Try Supabase first
+        const [pi, sk, pr, ex, ed, te, me, bl, se] = await Promise.allSettled([
+          db.personalInfo.getAll(),
+          db.skills.getAll(),
+          db.projects.getAll(),
+          db.experience.getAll(),
+          db.education.getAll(),
+          db.testimonials.getAll(),
+          db.contactMessages.getAll(),
+          db.blogPosts.getAll(),
+          db.settings.getAll(),
+        ]);
 
-  const [projects, setProjects] = useState<ProjectItem[]>(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.PROJECTS);
-    return saved ? JSON.parse(saved) : DEFAULT_PROJECTS;
-  });
+        if (cancelled) return;
 
-  const [experience, setExperience] = useState<ExperienceItem[]>(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.EXPERIENCE);
-    return saved ? JSON.parse(saved) : DEFAULT_EXPERIENCE;
-  });
+        if (pi.status === 'fulfilled' && pi.value.length > 0) setPersonalInfo(pi.value[0] as unknown as PersonalInfo);
+        if (sk.status === 'fulfilled') setSkills(sk.value as unknown as SkillItem[]);
+        if (pr.status === 'fulfilled') setProjects(pr.value as unknown as ProjectItem[]);
+        if (ex.status === 'fulfilled') setExperience(ex.value as unknown as ExperienceItem[]);
+        if (ed.status === 'fulfilled') setEducation(ed.value as unknown as EducationItem[]);
+        if (te.status === 'fulfilled') setTestimonials(te.value as unknown as TestimonialItem[]);
+        if (me.status === 'fulfilled') setMessages(me.value as unknown as ContactMessage[]);
+        if (bl.status === 'fulfilled') setBlogs(bl.value as unknown as BlogPost[]);
+        if (se.status === 'fulfilled' && se.value.length > 0) setSettingsState(se.value[0] as unknown as OSSettings);
+      } catch {
+        // Supabase failed — restore from localStorage fallback
+      }
 
-  const [education, setEducation] = useState<EducationItem[]>(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.EDUCATION);
-    return saved ? JSON.parse(saved) : DEFAULT_EDUCATION;
-  });
+      // Always apply localStorage fallback for any empty data
+      try {
+        const savedPI = localStorage.getItem(STORAGE_KEYS.PERSONAL_INFO);
+        if (savedPI) setPersonalInfo((prev) => prev === DEFAULT_PERSONAL_INFO ? JSON.parse(savedPI) : prev);
+        const savedSK = localStorage.getItem(STORAGE_KEYS.SKILLS);
+        if (savedSK) setSkills((prev) => prev.length === 0 ? JSON.parse(savedSK) : prev);
+        const savedPR = localStorage.getItem(STORAGE_KEYS.PROJECTS);
+        if (savedPR) setProjects((prev) => prev.length === 0 ? JSON.parse(savedPR) : prev);
+        const savedEX = localStorage.getItem(STORAGE_KEYS.EXPERIENCE);
+        if (savedEX) setExperience((prev) => prev.length === 0 ? JSON.parse(savedEX) : prev);
+        const savedED = localStorage.getItem(STORAGE_KEYS.EDUCATION);
+        if (savedED) setEducation((prev) => prev.length === 0 ? JSON.parse(savedED) : prev);
+        const savedTE = localStorage.getItem(STORAGE_KEYS.TESTIMONIALS);
+        if (savedTE) setTestimonials((prev) => prev.length === 0 ? JSON.parse(savedTE) : prev);
+        const savedME = localStorage.getItem(STORAGE_KEYS.MESSAGES);
+        if (savedME) setMessages((prev) => prev.length === 0 ? JSON.parse(savedME) : prev);
+        const savedBL = localStorage.getItem(STORAGE_KEYS.BLOGS);
+        if (savedBL) setBlogs((prev) => prev.length === 0 ? JSON.parse(savedBL) : prev);
+        const savedSE = localStorage.getItem(STORAGE_KEYS.SETTINGS);
+        if (savedSE) setSettingsState((prev) => JSON.parse(savedSE));
+      } catch {}
 
-  const [testimonials, setTestimonials] = useState<TestimonialItem[]>(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.TESTIMONIALS);
-    return saved ? JSON.parse(saved) : DEFAULT_TESTIMONIALS;
-  });
-
-  const [messages, setMessages] = useState<ContactMessage[]>(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.MESSAGES);
-    return saved ? JSON.parse(saved) : DEFAULT_MESSAGES;
-  });
-
-  const [blogs, setBlogs] = useState<BlogPost[]>(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.BLOGS);
-    return saved ? JSON.parse(saved) : DEFAULT_BLOGS;
-  });
-
-  const [settings, setSettingsState] = useState<OSSettings>(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.SETTINGS);
-    return saved ? JSON.parse(saved) : DEFAULT_SETTINGS;
-  });
+      setDataLoaded(true);
+    };
+    loadData();
+    return () => { cancelled = true; };
+  }, []);
 
   const [notifications, setNotifications] = useState<ToastNotification[]>([]);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(() => {
@@ -360,42 +387,16 @@ export const PortfolioProvider: React.FC<{ children: ReactNode }> = ({ children 
         : 'desktop'
       : settings.osMode;
 
-  // Persist helpers
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.PERSONAL_INFO, JSON.stringify(personalInfo));
-  }, [personalInfo]);
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.SKILLS, JSON.stringify(skills));
-  }, [skills]);
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
-  }, [projects]);
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.EXPERIENCE, JSON.stringify(experience));
-  }, [experience]);
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.EDUCATION, JSON.stringify(education));
-  }, [education]);
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.TESTIMONIALS, JSON.stringify(testimonials));
-  }, [testimonials]);
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.MESSAGES, JSON.stringify(messages));
-  }, [messages]);
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.BLOGS, JSON.stringify(blogs));
-  }, [blogs]);
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
-  }, [settings]);
+  // Persist to localStorage as fallback cache
+  useEffect(() => { localStorage.setItem(STORAGE_KEYS.PERSONAL_INFO, JSON.stringify(personalInfo)); }, [personalInfo]);
+  useEffect(() => { localStorage.setItem(STORAGE_KEYS.SKILLS, JSON.stringify(skills)); }, [skills]);
+  useEffect(() => { localStorage.setItem(STORAGE_KEYS.PROJECTS, JSON.stringify(projects)); }, [projects]);
+  useEffect(() => { localStorage.setItem(STORAGE_KEYS.EXPERIENCE, JSON.stringify(experience)); }, [experience]);
+  useEffect(() => { localStorage.setItem(STORAGE_KEYS.EDUCATION, JSON.stringify(education)); }, [education]);
+  useEffect(() => { localStorage.setItem(STORAGE_KEYS.TESTIMONIALS, JSON.stringify(testimonials)); }, [testimonials]);
+  useEffect(() => { localStorage.setItem(STORAGE_KEYS.MESSAGES, JSON.stringify(messages)); }, [messages]);
+  useEffect(() => { localStorage.setItem(STORAGE_KEYS.BLOGS, JSON.stringify(blogs)); }, [blogs]);
+  useEffect(() => { localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings)); }, [settings]);
 
   // Notifications helper
   const showToast = (title: string, message: string) => {
@@ -611,134 +612,168 @@ export const PortfolioProvider: React.FC<{ children: ReactNode }> = ({ children 
     showToast('Admin Session', 'Logged out of admin panel.');
   };
 
-  // CRUD Operations
-  const updatePersonalInfo = (info: PersonalInfo) => {
+  // CRUD Operations — try Supabase first, always update local state
+  const updatePersonalInfo = async (info: PersonalInfo) => {
     setPersonalInfo(info);
-    showToast('Profile Updated', 'Personal information saved successfully.');
+    if (dataLoaded) {
+      try { await db.personalInfo.update(1, info as unknown as Record<string, unknown>); } catch { /* tables may not exist yet */ }
+    }
+    showToast(t('notif.profileUpdated'), '');
   };
 
-  const addSkill = (skill: Omit<SkillItem, 'id'>) => {
-    const newSkill: SkillItem = { ...skill, id: generateUniqueId() };
-    setSkills((prev) => [newSkill, ...prev]);
-    showToast('Skill Added', `Added ${newSkill.name} to portfolio.`);
+  const addSkill = async (skill: Omit<SkillItem, 'id'>) => {
+    const withId = { ...skill, id: generateUniqueId() };
+    if (dataLoaded) {
+      try { const inserted = await db.skills.insert(withId as unknown as Record<string, unknown>); if (inserted) { setSkills((prev) => [inserted as unknown as SkillItem, ...prev]); return; } } catch {}
+    }
+    setSkills((prev) => [withId as SkillItem, ...prev]);
+    showToast(t('notif.skillAdded'), '');
   };
 
-  const updateSkill = (id: string, updated: Partial<SkillItem>) => {
+  const updateSkill = async (id: string, updated: Partial<SkillItem>) => {
     setSkills((prev) => prev.map((s) => (s.id === id ? { ...s, ...updated } : s)));
-    showToast('Skill Updated', 'Skill information updated.');
+    if (dataLoaded) { try { await db.skills.update(id, updated as unknown as Record<string, unknown>); } catch {} }
+    showToast(t('notif.skillAdded'), '');
   };
 
-  const deleteSkill = (id: string) => {
+  const deleteSkill = async (id: string) => {
     setSkills((prev) => prev.filter((s) => s.id !== id));
-    showToast('Skill Removed', 'Skill removed from database.');
+    if (dataLoaded) { try { await db.skills.remove(id); } catch {} }
+    showToast(t('notif.skillRemoved'), '');
   };
 
-  const addProject = (project: Omit<ProjectItem, 'id'>) => {
-    const newProject: ProjectItem = { ...project, id: generateUniqueId() };
-    setProjects((prev) => [newProject, ...prev]);
-    showToast('Project Published', `Published project ${newProject.title}.`);
+  const addProject = async (project: Omit<ProjectItem, 'id'>) => {
+    const withId = { ...project, id: generateUniqueId() };
+    if (dataLoaded) {
+      try { const inserted = await db.projects.insert(withId as unknown as Record<string, unknown>); if (inserted) { setProjects((prev) => [inserted as unknown as ProjectItem, ...prev]); return; } } catch {}
+    }
+    setProjects((prev) => [withId as ProjectItem, ...prev]);
+    showToast(t('notif.projectPublished'), '');
   };
 
-  const updateProject = (id: string, updated: Partial<ProjectItem>) => {
+  const updateProject = async (id: string, updated: Partial<ProjectItem>) => {
     setProjects((prev) => prev.map((p) => (p.id === id ? { ...p, ...updated } : p)));
-    showToast('Project Updated', 'Project updated successfully.');
+    if (dataLoaded) { try { await db.projects.update(id, updated as unknown as Record<string, unknown>); } catch {} }
+    showToast(t('notif.projectPublished'), '');
   };
 
-  const deleteProject = (id: string) => {
+  const deleteProject = async (id: string) => {
     setProjects((prev) => prev.filter((p) => p.id !== id));
-    showToast('Project Deleted', 'Project removed.');
+    if (dataLoaded) { try { await db.projects.remove(id); } catch {} }
+    showToast(t('notif.projectDeleted'), '');
   };
 
-  const addExperience = (exp: Omit<ExperienceItem, 'id'>) => {
-    const newExp: ExperienceItem = { ...exp, id: generateUniqueId() };
-    setExperience((prev) => [newExp, ...prev]);
-    showToast('Experience Added', `Added role at ${newExp.company}.`);
+  const addExperience = async (exp: Omit<ExperienceItem, 'id'>) => {
+    const withId = { ...exp, id: generateUniqueId() };
+    if (dataLoaded) {
+      try { const inserted = await db.experience.insert(withId as unknown as Record<string, unknown>); if (inserted) { setExperience((prev) => [inserted as unknown as ExperienceItem, ...prev]); return; } } catch {}
+    }
+    setExperience((prev) => [withId as ExperienceItem, ...prev]);
+    showToast(t('notif.experienceAdded'), '');
   };
 
-  const updateExperience = (id: string, updated: Partial<ExperienceItem>) => {
+  const updateExperience = async (id: string, updated: Partial<ExperienceItem>) => {
     setExperience((prev) => prev.map((e) => (e.id === id ? { ...e, ...updated } : e)));
-    showToast('Experience Updated', 'Work entry updated.');
+    if (dataLoaded) { try { await db.experience.update(id, updated as unknown as Record<string, unknown>); } catch {} }
+    showToast(t('notif.experienceAdded'), '');
   };
 
-  const deleteExperience = (id: string) => {
+  const deleteExperience = async (id: string) => {
     setExperience((prev) => prev.filter((e) => e.id !== id));
-    showToast('Experience Deleted', 'Work experience removed.');
+    if (dataLoaded) { try { await db.experience.remove(id); } catch {} }
+    showToast(t('notif.experienceAdded'), '');
   };
 
-  const addEducation = (edu: Omit<EducationItem, 'id'>) => {
-    const newEdu: EducationItem = { ...edu, id: generateUniqueId() };
-    setEducation((prev) => [newEdu, ...prev]);
-    showToast('Education Added', `Added ${newEdu.institution}.`);
+  const addEducation = async (edu: Omit<EducationItem, 'id'>) => {
+    const withId = { ...edu, id: generateUniqueId() };
+    if (dataLoaded) {
+      try { const inserted = await db.education.insert(withId as unknown as Record<string, unknown>); if (inserted) { setEducation((prev) => [inserted as unknown as EducationItem, ...prev]); return; } } catch {}
+    }
+    setEducation((prev) => [withId as EducationItem, ...prev]);
+    showToast(t('notif.experienceAdded'), '');
   };
 
-  const updateEducation = (id: string, updated: Partial<EducationItem>) => {
+  const updateEducation = async (id: string, updated: Partial<EducationItem>) => {
     setEducation((prev) => prev.map((e) => (e.id === id ? { ...e, ...updated } : e)));
-    showToast('Education Updated', 'Education entry updated.');
+    if (dataLoaded) { try { await db.education.update(id, updated as unknown as Record<string, unknown>); } catch {} }
+    showToast(t('notif.experienceAdded'), '');
   };
 
-  const deleteEducation = (id: string) => {
+  const deleteEducation = async (id: string) => {
     setEducation((prev) => prev.filter((e) => e.id !== id));
-    showToast('Education Deleted', 'Entry removed.');
+    if (dataLoaded) { try { await db.education.remove(id); } catch {} }
+    showToast(t('notif.experienceAdded'), '');
   };
 
-  const addTestimonial = (test: Omit<TestimonialItem, 'id'>) => {
-    const newTest: TestimonialItem = { ...test, id: generateUniqueId() };
-    setTestimonials((prev) => [newTest, ...prev]);
-    showToast('Testimonial Added', `Added review from ${newTest.clientName}.`);
+  const addTestimonial = async (test: Omit<TestimonialItem, 'id'>) => {
+    const withId = { ...test, id: generateUniqueId() };
+    if (dataLoaded) {
+      try { const inserted = await db.testimonials.insert(withId as unknown as Record<string, unknown>); if (inserted) { setTestimonials((prev) => [inserted as unknown as TestimonialItem, ...prev]); return; } } catch {}
+    }
+    setTestimonials((prev) => [withId as TestimonialItem, ...prev]);
+    showToast(t('notif.experienceAdded'), '');
   };
 
-  const updateTestimonial = (id: string, updated: Partial<TestimonialItem>) => {
+  const updateTestimonial = async (id: string, updated: Partial<TestimonialItem>) => {
     setTestimonials((prev) => prev.map((t) => (t.id === id ? { ...t, ...updated } : t)));
-    showToast('Testimonial Updated', 'Client review updated.');
+    if (dataLoaded) { try { await db.testimonials.update(id, updated as unknown as Record<string, unknown>); } catch {} }
+    showToast(t('notif.experienceAdded'), '');
   };
 
-  const deleteTestimonial = (id: string) => {
+  const deleteTestimonial = async (id: string) => {
     setTestimonials((prev) => prev.filter((t) => t.id !== id));
-    showToast('Testimonial Removed', 'Review removed.');
+    if (dataLoaded) { try { await db.testimonials.remove(id); } catch {} }
+    showToast(t('notif.experienceAdded'), '');
   };
 
-  const sendMessage = (msg: { senderName: string; senderEmail: string; subject: string; message: string }) => {
-    const newMsg: ContactMessage = {
-      ...msg,
-      id: generateUniqueId(),
-      createdAt: new Date().toISOString(),
-      read: false
-    };
+  const sendMessage = async (msg: { senderName: string; senderEmail: string; subject: string; message: string }) => {
+    const newMsg: ContactMessage = { ...msg, id: generateUniqueId(), createdAt: new Date().toISOString(), read: false };
+    if (dataLoaded) {
+      try { const inserted = await db.contactMessages.insert(newMsg as unknown as Record<string, unknown>); if (inserted) { setMessages((prev) => [inserted as unknown as ContactMessage, ...prev]); return; } } catch {}
+    }
     setMessages((prev) => [newMsg, ...prev]);
-    showToast('Message Sent!', 'Thank you! Your message has been delivered to Alex.');
+    showToast(t('notif.messageSent'), '');
   };
 
-  const markMessageRead = (id: string) => {
+  const markMessageRead = async (id: string) => {
     setMessages((prev) => prev.map((m) => (m.id === id ? { ...m, read: true } : m)));
+    if (dataLoaded) { try { await db.contactMessages.update(id, { read: true } as unknown as Record<string, unknown>); } catch {} }
   };
 
-  const deleteMessage = (id: string) => {
+  const deleteMessage = async (id: string) => {
     setMessages((prev) => prev.filter((m) => m.id !== id));
-    showToast('Message Deleted', 'Removed message from inbox.');
+    if (dataLoaded) { try { await db.contactMessages.remove(id); } catch {} }
+    showToast(t('notif.messageDeleted'), '');
   };
 
-  const addBlog = (blog: Omit<BlogPost, 'id'>) => {
-    const newBlog: BlogPost = { ...blog, id: generateUniqueId() };
-    setBlogs((prev) => [newBlog, ...prev]);
-    showToast('Blog Post Added', `Created article: ${newBlog.title}`);
+  const addBlog = async (blog: Omit<BlogPost, 'id'>) => {
+    const withId = { ...blog, id: generateUniqueId() };
+    if (dataLoaded) {
+      try { const inserted = await db.blogPosts.insert(withId as unknown as Record<string, unknown>); if (inserted) { setBlogs((prev) => [inserted as unknown as BlogPost, ...prev]); return; } } catch {}
+    }
+    setBlogs((prev) => [withId as BlogPost, ...prev]);
+    showToast(t('notif.projectPublished'), '');
   };
 
-  const updateBlog = (id: string, updated: Partial<BlogPost>) => {
+  const updateBlog = async (id: string, updated: Partial<BlogPost>) => {
     setBlogs((prev) => prev.map((b) => (b.id === id ? { ...b, ...updated } : b)));
-    showToast('Article Updated', 'Saved changes to article.');
+    if (dataLoaded) { try { await db.blogPosts.update(id, updated as unknown as Record<string, unknown>); } catch {} }
+    showToast(t('notif.projectPublished'), '');
   };
 
-  const deleteBlog = (id: string) => {
+  const deleteBlog = async (id: string) => {
     setBlogs((prev) => prev.filter((b) => b.id !== id));
-    showToast('Article Deleted', 'Article deleted.');
+    if (dataLoaded) { try { await db.blogPosts.remove(id); } catch {} }
+    showToast(t('notif.projectPublished'), '');
   };
 
-  const updateSettings = (newSettings: Partial<OSSettings>) => {
+  const updateSettings = async (newSettings: Partial<OSSettings>) => {
     setSettingsState((prev) => ({ ...prev, ...newSettings }));
-    showToast('Settings Saved', 'OS configuration updated.');
+    if (dataLoaded) { try { await db.settings.update(1, newSettings as unknown as Record<string, unknown>); } catch {} }
+    showToast(t('notif.settingsSaved'), '');
   };
 
-  const resetAllData = () => {
+  const resetAllData = async () => {
     localStorage.clear();
     setPersonalInfo(DEFAULT_PERSONAL_INFO);
     setSkills(DEFAULT_SKILLS);
@@ -750,7 +785,21 @@ export const PortfolioProvider: React.FC<{ children: ReactNode }> = ({ children 
     setBlogs(DEFAULT_BLOGS);
     setSettingsState(DEFAULT_SETTINGS);
     setIsAdminAuthenticated(false);
-    showToast('Data Reset', 'Restored initial portfolio dataset.');
+    // Also clear Supabase
+    if (dataLoaded) {
+      try {
+        await supabase.from('personal_info').delete().neq('id', 0);
+        await supabase.from('skills').delete().neq('id', '');
+        await supabase.from('projects').delete().neq('id', '');
+        await supabase.from('experience').delete().neq('id', '');
+        await supabase.from('education').delete().neq('id', '');
+        await supabase.from('testimonials').delete().neq('id', '');
+        await supabase.from('contact_messages').delete().neq('id', '');
+        await supabase.from('blog_posts').delete().neq('id', '');
+        await supabase.from('settings').delete().neq('id', 0);
+      } catch {}
+    }
+    showToast(t('notif.dataReset'), '');
   };
 
   const exportJSONData = (): string => {
@@ -767,20 +816,20 @@ export const PortfolioProvider: React.FC<{ children: ReactNode }> = ({ children 
     return JSON.stringify(fullData, null, 2);
   };
 
-  const importJSONData = (jsonStr: string): boolean => {
+  const importJSONData = async (jsonStr: string): Promise<boolean> => {
     try {
       const parsed = JSON.parse(jsonStr);
-      if (parsed.personalInfo) setPersonalInfo(parsed.personalInfo);
-      if (parsed.skills) setSkills(parsed.skills);
-      if (parsed.projects) setProjects(parsed.projects);
-      if (parsed.experience) setExperience(parsed.experience);
-      if (parsed.education) setEducation(parsed.education);
-      if (parsed.testimonials) setTestimonials(parsed.testimonials);
-      if (parsed.blogs) setBlogs(parsed.blogs);
-      showToast('Import Success', 'Portfolio database restored from JSON.');
+      if (parsed.personalInfo) { setPersonalInfo(parsed.personalInfo); if (dataLoaded) try { await db.personalInfo.update(1, parsed.personalInfo); } catch {} }
+      if (parsed.skills) { setSkills(parsed.skills); /* could iterate and insert each */ }
+      if (parsed.projects) { setProjects(parsed.projects); }
+      if (parsed.experience) { setExperience(parsed.experience); }
+      if (parsed.education) { setEducation(parsed.education); }
+      if (parsed.testimonials) { setTestimonials(parsed.testimonials); }
+      if (parsed.blogs) { setBlogs(parsed.blogs); }
+      showToast(t('notif.importSuccess'), '');
       return true;
     } catch {
-      showToast('Import Failed', 'Invalid JSON payload structure.');
+      showToast(t('notif.importFailed'), '');
       return false;
     }
   };

@@ -8,6 +8,7 @@ import { ControlCenter } from './ControlCenter';
 import { SpotlightModal } from './SpotlightModal';
 import { WelcomeTourModal } from './WelcomeTourModal';
 import { WindowContainer } from './Window';
+import { WallpaperPickerModal } from './WallpaperPickerModal';
 import { AboutApp } from '../apps/AboutApp';
 import { SkillsApp } from '../apps/SkillsApp';
 import { ProjectsApp } from '../apps/ProjectsApp';
@@ -53,6 +54,7 @@ export const DesktopView: React.FC = () => {
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
   const [desktopItems, setDesktopItems] = useState<DesktopItem[]>([]);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  const [showWallpaperPicker, setShowWallpaperPicker] = useState(false);
   const activeWindowIdRef = useRef(activeWindowId);
   activeWindowIdRef.current = activeWindowId;
 
@@ -113,7 +115,7 @@ export const DesktopView: React.FC = () => {
         setSelectedItemId(null);
       }}
       onContextMenu={handleContextMenu}
-      className="relative w-screen h-screen overflow-hidden bg-[#004275] bg-cover bg-center select-none font-sans text-white"
+      className="relative w-screen h-screen overflow-hidden bg-[#0b1d3a] bg-cover bg-center select-none font-sans text-white"
       style={isGradient ? { backgroundImage: activeWp.url } : { backgroundImage: `url(${activeWp.url})` }}
     >
       {/* Dark Overlay Tint */}
@@ -260,16 +262,11 @@ export const DesktopView: React.FC = () => {
           <div className="my-1 border-t border-white/10" />
 
           <button
-            onClick={() => {
-              const currentIndex = WALLPAPERS.findIndex((w) => w.id === settings.wallpaper);
-              const nextWp = WALLPAPERS[(currentIndex + 1) % WALLPAPERS.length];
-              updateSettings({ wallpaper: nextWp.id });
-              closeContextMenu();
-            }}
+            onClick={() => { setShowWallpaperPicker(true); closeContextMenu(); }}
             className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/10 font-medium transition"
           >
             <Image className="w-4 h-4 text-amber-400" />
-            <span>{t('ctx.nextWp')}</span>
+            <span>Change Wallpaper</span>
           </button>
 
           <button
@@ -299,6 +296,9 @@ export const DesktopView: React.FC = () => {
           )}
         </div>
       )}
+
+      {/* Wallpaper Picker Modal */}
+      {showWallpaperPicker && <WallpaperPickerModal onClose={() => setShowWallpaperPicker(false)} />}
 
       {/* Windows Taskbar */}
       <Taskbar />

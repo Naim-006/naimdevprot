@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { usePortfolio } from '../../context/PortfolioContext';
 import { WALLPAPERS } from '../../data/defaultData';
 import { Settings, Volume2, VolumeX, Monitor, Smartphone, RefreshCw, Check, Layers, ShieldAlert } from 'lucide-react';
 import { soundEngine } from '../../utils/sound';
+import { WallpaperPickerModal } from '../os/WallpaperPickerModal';
 
 export const SettingsApp: React.FC = () => {
-  const { settings, updateSettings, setOSMode, resetAllData } = usePortfolio();
+  const { settings, updateSettings, setOSMode, resetAllData, t } = usePortfolio();
+  const [showPicker, setShowPicker] = useState(false);
 
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-8 text-slate-800 dark:text-slate-100">
@@ -66,33 +68,22 @@ export const SettingsApp: React.FC = () => {
         </div>
       </div>
 
-      {/* Wallpapers Grid */}
+      {/* Wallpapers */}
       <div className="bg-white dark:bg-slate-800/80 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm space-y-4">
-        <h2 className="text-base font-bold text-slate-900 dark:text-white">Desktop & Lockscreen Wallpapers</h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          {WALLPAPERS.map((wp) => (
-            <div
-              key={wp.id}
-              onClick={() => updateSettings({ wallpaper: wp.id })}
-              className={`group relative h-28 rounded-xl overflow-hidden border-2 cursor-pointer shadow-sm transition ${
-                settings.wallpaper === wp.id ? 'border-blue-500 ring-2 ring-blue-500/50' : 'border-transparent'
-              }`}
-            >
-              <img src={wp.url} alt={wp.name} className="w-full h-full object-cover group-hover:scale-105 transition" />
-              <div className="absolute inset-0 bg-black/40 p-2 flex flex-col justify-between">
-                <span className="text-[10px] font-bold text-white bg-black/50 px-2 py-0.5 rounded backdrop-blur-md self-start">
-                  {wp.name}
-                </span>
-                {settings.wallpaper === wp.id && (
-                  <span className="p-1 bg-blue-500 text-white rounded-full self-end shadow-md">
-                    <Check className="w-3.5 h-3.5" />
-                  </span>
-                )}
-              </div>
-            </div>
-          ))}
+        <div className="flex items-center justify-between">
+          <h2 className="text-base font-bold text-slate-900 dark:text-white">Wallpapers</h2>
+          <button onClick={() => setShowPicker(true)}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition">
+            Change Wallpaper
+          </button>
+        </div>
+        <div className="flex items-center gap-4 text-xs text-slate-400">
+          <span>Home: <span className="text-slate-700 dark:text-slate-200 font-semibold">{WALLPAPERS.find((w) => w.id === settings.wallpaper)?.name || 'None'}</span></span>
+          <span>Lock: <span className="text-slate-700 dark:text-slate-200 font-semibold">{WALLPAPERS.find((w) => w.id === settings.lockWallpaper)?.name || 'None'}</span></span>
         </div>
       </div>
+
+      {showPicker && <WallpaperPickerModal onClose={() => setShowPicker(false)} />}
 
       {/* Sound Effects & Audio */}
       <div className="bg-white dark:bg-slate-800/80 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm flex items-center justify-between">

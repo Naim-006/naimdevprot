@@ -17,7 +17,7 @@ export const ProjectsApp: React.FC = () => {
     const mCat = selectedCategory === 'All' || p.category === selectedCategory;
     const mSearch = !searchTerm || p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.shortDesc.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.techStack.some((t) => t.toLowerCase().includes(searchTerm.toLowerCase()));
+      (p.techStack || []).some((t) => t.toLowerCase().includes(searchTerm.toLowerCase()));
     return mCat && mSearch;
   });
 
@@ -90,13 +90,13 @@ export const ProjectsApp: React.FC = () => {
                   <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">{p.shortDesc}</p>
                 </div>
                 <div className="flex flex-wrap gap-1.5 pt-2 border-t border-white/10">
-                  {p.techStack.slice(0, 4).map((t) => (
+                  {(p.techStack || []).slice(0, 4).map((t) => (
                     <span key={t} className="px-2 py-0.5 bg-white/10 text-slate-300 text-[9px] font-medium rounded border border-white/10">
                       {t}
                     </span>
                   ))}
-                  {p.techStack.length > 4 && (
-                    <span className="px-2 py-0.5 text-[9px] text-slate-500">+{p.techStack.length - 4}</span>
+                  {(p.techStack || []).length > 4 && (
+                    <span className="px-2 py-0.5 text-[9px] text-slate-500">+{(p.techStack || []).length - 4}</span>
                   )}
                 </div>
               </div>
@@ -127,7 +127,7 @@ export const ProjectsApp: React.FC = () => {
             <div className="space-y-2">
               <h4 className="text-[11px] font-bold uppercase text-slate-400 tracking-wider">Tech Stack</h4>
               <div className="flex flex-wrap gap-2">
-                {activeProject.techStack.map((t) => (
+                {(activeProject.techStack || []).map((t) => (
                   <span key={t} className="px-2.5 py-1 bg-blue-500/10 text-blue-300 text-[11px] font-semibold rounded-lg border border-blue-500/20">{t}</span>
                 ))}
               </div>

@@ -64,7 +64,10 @@ export const MobileView: React.FC = () => {
   return (
     <div
       className="relative w-screen h-screen overflow-hidden bg-cover bg-center select-none font-sans flex flex-col justify-between"
-      style={{ backgroundImage: `url(${activeWp.url})` }}
+      style={activeWp.url.startsWith('radial-gradient') || activeWp.url.startsWith('linear-gradient')
+        ? { backgroundImage: activeWp.url }
+        : { backgroundImage: `url(${activeWp.url})` }
+      }
     >
       {/* Dark Tint Overlay */}
       <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px] pointer-events-none" />

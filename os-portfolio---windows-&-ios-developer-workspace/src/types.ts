@@ -124,12 +124,13 @@ export interface BlogPost {
 
 export interface OSSettings {
   wallpaper: string;
-  accentColor: string; // hex or tailwind name
+  lockWallpaper: string;
+  accentColor: string;
   osMode: OSMode;
   soundEnabled: boolean;
   darkMode: boolean;
   adminUsername: string;
-  adminPasswordHash: string; // or plain for local demo
+  adminPasswordHash: string;
   visitorCount: number;
 }
 

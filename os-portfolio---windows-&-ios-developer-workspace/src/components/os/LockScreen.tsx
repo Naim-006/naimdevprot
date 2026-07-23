@@ -1,15 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'motion/react';
 import { usePortfolio } from '../../context/PortfolioContext';
 import { WALLPAPERS } from '../../data/defaultData';
 import { ChevronUp, Wifi, Battery } from 'lucide-react';
 
 export const LockScreen: React.FC = () => {
-  const { unlockScreen, t } = usePortfolio();
+  const { unlockScreen, t, settings } = usePortfolio();
   const [timeStr, setTimeStr] = useState('');
   const [dateStr, setDateStr] = useState('');
   const [isUnlocking, setIsUnlocking] = useState(false);
   const [mouseY, setMouseY] = useState(0);
+
+  // Use lockWallpaper setting — falls back to iOS Fluid Aurora
+  const wallpaper = useMemo(
+    () => WALLPAPERS.find((w) => w.id === settings.lockWallpaper) || WALLPAPERS.find((w) => w.id === 'ios-gradient') || WALLPAPERS[0],
+    [settings.lockWallpaper]
+  );
 
   useEffect(() => {
     const updateTime = () => {
@@ -21,8 +27,6 @@ export const LockScreen: React.FC = () => {
     const timer = setInterval(updateTime, 1000);
     return () => clearInterval(timer);
   }, []);
-
-  const wallpaper = WALLPAPERS[Math.floor(Math.random() * WALLPAPERS.length)];
 
   const handleUnlock = () => {
     setIsUnlocking(true);
@@ -37,7 +41,10 @@ export const LockScreen: React.FC = () => {
       onMouseMove={(e) => setMouseY(e.clientY)}
       onClick={handleUnlock}
       className="fixed inset-0 z-[100] flex flex-col items-center justify-between bg-cover bg-center select-none cursor-pointer"
-      style={{ backgroundImage: `url(${wallpaper.url})` }}
+      style={wallpaper.url.startsWith('radial-gradient') || wallpaper.url.startsWith('linear-gradient')
+        ? { backgroundImage: wallpaper.url }
+        : { backgroundImage: `url(${wallpaper.url})` }
+      }
     >
       {/* Dark overlay */}
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />

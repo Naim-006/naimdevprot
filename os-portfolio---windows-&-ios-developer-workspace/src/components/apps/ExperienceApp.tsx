@@ -42,7 +42,7 @@ export const ExperienceApp: React.FC = () => {
                 <div className="space-y-1.5">
                   <h4 className="text-[11px] font-bold uppercase text-slate-400 tracking-wider">Key Achievements</h4>
                   <ul className="space-y-1">
-                    {exp.achievements.map((ach, i) => (
+                    {(exp.achievements || []).map((ach, i) => (
                       <li key={i} className="flex items-start gap-2 text-xs text-slate-300">
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
                         <span>{ach}</span>
@@ -50,8 +50,10 @@ export const ExperienceApp: React.FC = () => {
                     ))}
                   </ul>
                 </div>
+
+                {/* Tech Badges */}
                 <div className="flex flex-wrap gap-1.5 pt-1">
-                  {exp.technologies.map((t) => (
+                  {(exp.technologies || []).map((t) => (
                     <span key={t} className="px-2 py-0.5 bg-amber-500/10 text-amber-300 text-[10px] font-semibold rounded-md border border-amber-500/20">{t}</span>
                   ))}
                 </div>
@@ -82,7 +84,7 @@ export const ExperienceApp: React.FC = () => {
                 <span className="inline-block px-2.5 py-0.5 bg-emerald-500/10 text-emerald-400 text-xs font-bold rounded-md border border-emerald-500/20">{edu.grade}</span>
               )}
               <ul className="space-y-1 pt-2 border-t border-white/10">
-                {edu.highlights.map((item, i) => (
+                {(edu.highlights || []).map((item, i) => (
                   <li key={i} className="text-xs text-slate-300 flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0" />
                     <span>{item}</span>

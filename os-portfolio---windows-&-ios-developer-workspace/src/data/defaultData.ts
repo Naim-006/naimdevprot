@@ -289,7 +289,8 @@ In this benchmark study, we test gesture responsiveness, cold boot time, and mem
 ];
 
 export const DEFAULT_SETTINGS: OSSettings = {
-  wallpaper: 'sleek-blue',
+  wallpaper: 'ocean-dream',
+  lockWallpaper: 'ios-gradient',
   accentColor: '#3b82f6',
   osMode: 'auto',
   soundEnabled: true,
@@ -312,11 +313,70 @@ export const SYSTEM_APPS: AppDefinition[] = [
   { id: 'admin', title: 'Admin Panel', iconName: 'Shield', category: 'system', badge: 'Secured', color: '#ef4444', bgGradient: 'from-red-500 to-rose-700' }
 ];
 
-export const WALLPAPERS = [
-  { id: 'sleek-blue', name: 'Sleek Radial Gradient', url: 'radial-gradient(circle at top right, #1d4ed8, #1e3a8a, #001e3c)' },
-  { id: 'bloom-blue', name: 'Windows Bloom Blue', url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1920&q=80' },
-  { id: 'synthwave-cyber', name: 'Cyberpunk Neon', url: 'https://images.unsplash.com/photo-1508739773434-c26b3d09e071?auto=format&fit=crop&w=1920&q=80' },
-  { id: 'minimal-sunset', name: 'Minimalist Sunset', url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1920&q=80' },
-  { id: 'ios-gradient', name: 'iOS Fluid Aurora', url: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&w=1920&q=80' },
-  { id: 'obsidian-dark', name: 'Obsidian Geometric', url: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1920&q=80' }
+export interface WallpaperDef {
+  id: string;
+  name: string;
+  url: string;
+}
+
+export const WALLPAPERS: WallpaperDef[] = [
+  // === Windows Defaults ===
+  { id: 'win11-bloom', name: 'Win 11 Bloom', url: 'linear-gradient(135deg, #1a0a2e 0%, #2d1b69 20%, #6b2142 40%, #c0392b 60%, #e67e22 80%, #f1c40f 100%)' },
+  { id: 'win11-blue', name: 'Win 11 Blue', url: 'linear-gradient(180deg, #0d1117 0%, #161b22 20%, #1f2937 40%, #374151 60%, #4b5563 100%)' },
+  { id: 'win10-hero', name: 'Win 10 Hero', url: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 20%, #16213e 40%, #0f3460 60%, #533483 80%, #e94560 100%)' },
+  { id: 'win-blue-bottom', name: 'Win Blue Bottom', url: 'linear-gradient(180deg, #0c1445 0%, #1a237e 25%, #283593 50%, #1565c0 75%, #42a5f5 100%)' },
+  // === iOS / macOS Defaults ===
+  { id: 'ios-stock', name: 'iOS Default', url: 'linear-gradient(135deg, #0d0d2b 0%, #1a1a4e 20%, #2d1b69 40%, #6b2142 60%, #a83279 80%, #e84393 100%)' },
+  { id: 'ios-16', name: 'iOS 16 Gradient', url: 'linear-gradient(135deg, #0f0c29 0%, #302b63 25%, #24243e 45%, #2b0f55 65%, #6b2162 85%, #c0392b 100%)' },
+  { id: 'macos-sonoma', name: 'macOS Sonoma', url: 'linear-gradient(180deg, #0b0e14 0%, #1a2332 30%, #2d4a6b 55%, #5b8cb8 75%, #a8d8ea 100%)' },
+  { id: 'macos-bigsur', name: 'macOS Big Sur', url: 'linear-gradient(180deg, #0f0c29 0%, #1a1a3e 25%, #2d1b69 50%, #1a3a6b 75%, #0f4c5c 100%)' },
+  { id: 'ios-fluid', name: 'iOS Fluid', url: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&w=1920&q=80' },
+  // === Colorful Gradients ===
+  { id: 'sunset-blend', name: 'Sunset Blend', url: 'linear-gradient(135deg, #ff6b6b 0%, #feca57 25%, #48dbfb 50%, #ff9ff3 75%, #54a0ff 100%)' },
+  { id: 'ocean-dream', name: 'Ocean Dream', url: 'linear-gradient(135deg, #0c0c1d 0%, #1a1a4e 30%, #2d6bb5 60%, #64b5f6 100%)' },
+  { id: 'aurora-borealis', name: 'Aurora Borealis', url: 'linear-gradient(135deg, #0d0221 0%, #1a0a3e 25%, #0f4c5c 50%, #1b9aaa 75%, #7dd87d 100%)' },
+  { id: 'cotton-candy', name: 'Cotton Candy', url: 'linear-gradient(135deg, #fce4ec 0%, #f8bbd0 20%, #ce93d8 40%, #81d4fa 60%, #80cbc4 100%)' },
+  { id: 'tropical', name: 'Tropical Vibes', url: 'linear-gradient(135deg, #004d40 0%, #00695c 25%, #00897b 50%, #26a69a 75%, #80cbc4 100%)' },
+  { id: 'neon-city', name: 'Neon City', url: 'linear-gradient(135deg, #0a0a2e 0%, #1a0a3e 20%, #d32f2f 45%, #ff6f00 70%, #ffd600 100%)' },
+  { id: 'mango', name: 'Mango Tango', url: 'linear-gradient(135deg, #ff9a9e 0%, #fad0c4 25%, #fbc2eb 50%, #a18cd1 75%, #667eea 100%)' },
+  { id: 'forest', name: 'Forest Canopy', url: 'linear-gradient(135deg, #134e5e 0%, #2c7a5a 30%, #6bcb77 60%, #a8e6cf 100%)' },
+  { id: 'lavender', name: 'Lavender Fields', url: 'linear-gradient(135deg, #2d1b69 0%, #6a3093 30%, #a855f7 60%, #d8b4fe 100%)' },
+  { id: 'winter', name: 'Winter Frost', url: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 30%, #0f3460 60%, #e2e8f0 100%)' },
+  { id: 'sunrise', name: 'Golden Sunrise', url: 'linear-gradient(135deg, #1a0a00 0%, #4a1800 20%, #b84700 50%, #ff8c00 75%, #ffd700 100%)' },
+  { id: 'ocean-surface', name: 'Ocean Surface', url: 'linear-gradient(135deg, #006064 0%, #00838f 25%, #00acc1 50%, #4dd0e1 75%, #b2ebf2 100%)' },
+  { id: 'blush', name: 'Blush', url: 'linear-gradient(135deg, #2d1a3e 0%, #6b2142 25%, #c0392b 50%, #e74c3c 75%, #f39c12 100%)' },
+  { id: 'deep-space', name: 'Deep Space', url: 'linear-gradient(135deg, #000000 0%, #0a0a2e 20%, #1a0a3e 40%, #2d1b69 60%, #4a3060 100%)' },
+  { id: 'paradise', name: 'Paradise', url: 'linear-gradient(135deg, #0f2027 0%, #203a43 30%, #2c5364 50%, #36d1dc 75%, #5b86e5 100%)' },
+  { id: 'peach', name: 'Peach Dream', url: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 30%, #ff9a9e 50%, #fad0c4 75%, #fbc2eb 100%)' },
+  // === Image Wallpapers ===
+  { id: 'colorful-abstract', name: 'Colorful Abstract', url: 'https://images.unsplash.com/photo-1541701494587-cb58502866ab?auto=format&fit=crop&w=1920&q=80' },
+  { id: 'northern-lights', name: 'Northern Lights', url: 'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?auto=format&fit=crop&w=1920&q=80' },
+  { id: 'galaxy', name: 'Galaxy Nebula', url: 'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=1920&q=80' },
+  { id: 'ios-fluid', name: 'iOS Fluid', url: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&w=1920&q=80' },
+  { id: 'beach-sunset', name: 'Beach Sunset', url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1920&q=80' },
+  { id: 'mountain-lake', name: 'Mountain Lake', url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=1920&q=80' },
+  { id: 'cherry-blossom', name: 'Cherry Blossom', url: 'https://images.unsplash.com/photo-1520769669658-f07657f5a307?auto=format&fit=crop&w=1920&q=80' },
+  { id: 'ocean-sunset', name: 'Ocean Sunset', url: 'https://images.unsplash.com/photo-1505118380757-91f5f5632de0?auto=format&fit=crop&w=1920&q=80' },
+  { id: 'abstract-dark', name: 'Abstract Dark', url: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1920&q=80' },
+  { id: 'starry-night', name: 'Starry Night', url: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1920&q=80' },
+  { id: 'japan-shrine', name: 'Japan Shrine', url: 'https://images.unsplash.com/photo-1528360983277-13d401cdc186?auto=format&fit=crop&w=1920&q=80' },
+  { id: 'waterfall', name: 'Mountain Waterfall', url: 'https://images.unsplash.com/photo-1490077476659-095159692ab5?auto=format&fit=crop&w=1920&q=80' },
+  { id: 'desert-dunes', name: 'Desert Dunes', url: 'https://images.unsplash.com/photo-1509316785289-025f5b846b35?auto=format&fit=crop&w=1920&q=80' },
+  { id: 'win-blue-bottom', name: 'Windows Blue Bottom', url: 'linear-gradient(180deg, #0c1445 0%, #1a237e 25%, #283593 50%, #1565c0 75%, #42a5f5 100%)' },
+  { id: 'bamboo-forest', name: 'Bamboo Forest', url: 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1920&q=80' },
+  { id: 'milky-way', name: 'Milky Way', url: 'https://images.unsplash.com/photo-1465101162946-4377e57745c3?auto=format&fit=crop&w=1920&q=80' },
+  { id: 'laptop-desk', name: 'Laptop Desk', url: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=1920&q=80' },
+  { id: 'code-screen', name: 'Code Screen', url: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=1920&q=80' },
+  { id: 'snow-mountain', name: 'Snow Mountain', url: 'https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?auto=format&fit=crop&w=1920&q=80' },
+  { id: 'palm-trees', name: 'Palm Trees', url: 'https://images.unsplash.com/photo-1515238152791-8216bfdf89a7?auto=format&fit=crop&w=1920&q=80' },
+  { id: 'river-view', name: 'River View', url: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1920&q=80' },
+  { id: 'autumn-leaves', name: 'Autumn Leaves', url: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1920&q=80' },
+  { id: 'lake-sunset', name: 'Lake Sunset', url: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1920&q=80' },
+  { id: 'canyon', name: 'Canyon View', url: 'https://images.unsplash.com/photo-1509316785289-025f5b846b35?auto=format&fit=crop&w=1920&q=80' },
+  // === OS-Style Landscape Wallpapers ===
+  { id: 'win-bloom-img', name: 'Win Bloom', url: 'https://images.unsplash.com/photo-1614850715649-1d0106293bd1?auto=format&fit=crop&w=1920&q=80' },
+  { id: 'mac-cliff', name: 'macOS Cliff', url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=1920&q=80' },
+  { id: 'mac-lake', name: 'macOS Lake', url: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1920&q=80' },
+  { id: 'ios-mountain', name: 'iOS Mountain', url: 'https://images.unsplash.com/photo-1454496522488-7a8e488e8606?auto=format&fit=crop&w=1920&q=80' },
+  { id: 'ios-abstract', name: 'iOS Abstract', url: 'https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?auto=format&fit=crop&w=1920&q=80' }
 ];

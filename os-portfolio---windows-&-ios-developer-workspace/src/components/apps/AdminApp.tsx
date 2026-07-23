@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { usePortfolio } from '../../context/PortfolioContext';
+import { ImageUpload } from '../common/ImageUpload';
 import {
   Shield,
   Key,
@@ -20,6 +21,7 @@ import {
   Download,
   Upload,
   Eye,
+  EyeOff,
   Star,
   CheckCircle2,
   Lock
@@ -64,9 +66,10 @@ export const AdminApp: React.FC = () => {
     importJSONData
   } = usePortfolio();
 
-  const [loginUser, setLoginUser] = useState('admin');
+  const [loginUser, setLoginUser] = useState('');
   const [loginPass, setLoginPass] = useState('');
   const [loggingIn, setLoggingIn] = useState(false);
+  const [showPass, setShowPass] = useState(false);
   const [activeTab, setActiveTab] = useState<
     'dashboard' | 'personal' | 'projects' | 'skills' | 'experience' | 'inbox' | 'testimonials' | 'blog' | 'system'
   >('dashboard');
@@ -78,70 +81,111 @@ export const AdminApp: React.FC = () => {
   const [editingProject, setEditingProject] = useState<Partial<ProjectItem> | null>(null);
   const [editingSkill, setEditingSkill] = useState<Partial<SkillItem> | null>(null);
   const [editingExp, setEditingExp] = useState<Partial<ExperienceItem> | null>(null);
+  const [editingTest, setEditingTest] = useState<Partial<TestimonialItem> | null>(null);
   const [editingBlog, setEditingBlog] = useState<Partial<BlogPost> | null>(null);
   const [importJsonText, setImportJsonText] = useState('');
   const [newPass, setNewPass] = useState('');
 
   if (!isAdminAuthenticated) {
     return (
-      <div className="p-8 max-w-md mx-auto my-12 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-2xl space-y-6">
-        <div className="text-center space-y-2">
-          <div className="w-16 h-16 bg-red-100 dark:bg-red-950/50 text-red-600 dark:text-red-400 rounded-2xl flex items-center justify-center mx-auto shadow-inner">
-            <Shield className="w-8 h-8" />
-          </div>
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Admin Portal Access</h2>
-          <p className="text-xs text-slate-500">Sign in to manage portfolio content dynamically.</p>
-        </div>
-
-        <form
-          onSubmit={async (e) => {
-            e.preventDefault();
-            setLoggingIn(true);
-            await loginAdmin(loginUser, loginPass);
-            setLoggingIn(false);
+      <div className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden bg-slate-950">
+        {/* Animated gradient background */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            backgroundImage: 'linear-gradient(-45deg, #0f172a, #1e1b4b, #0c4a6e, #0f766e, #1e1b4b)',
+            backgroundSize: '400% 400%',
+            animation: 'gradient 15s ease infinite',
           }}
-          className="space-y-4"
-        >
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Email / Username</label>
-            <div className="relative">
-              <User className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                type="text"
-                value={loginUser}
-                onChange={(e) => setLoginUser(e.target.value)}
-                placeholder="admin@email.com"
-                className="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-red-500"
-              />
+        />
+        {/* Blur overlay */}
+        <div className="absolute inset-0 backdrop-blur-[100px]" />
+
+        {/* Animated floating orbs */}
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-1000" />
+
+        {/* Login card */}
+        <div className="relative z-10 w-full max-w-sm">
+          <div className="bg-white/10 backdrop-blur-2xl rounded-3xl border border-white/20 shadow-2xl p-8 space-y-7
+            shadow-black/20">
+            {/* Logo */}
+            <div className="text-center space-y-3">
+              <div className="w-16 h-16 mx-auto bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30 ring-1 ring-white/20">
+                <Shield className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-white">Admin Access</h2>
+                <p className="text-xs text-slate-400/80">Sign in to manage your portfolio</p>
+              </div>
             </div>
+
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setLoggingIn(true);
+                await loginAdmin(loginUser, loginPass);
+                setLoggingIn(false);
+              }}
+              className="space-y-4"
+            >
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-300/90">Email</label>
+                <div className="relative group">
+                  <User className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-400 transition" />
+                  <input
+                    type="text"
+                    value={loginUser}
+                    onChange={(e) => setLoginUser(e.target.value)}
+                    placeholder="you@email.com"
+                    autoComplete="email"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/10 border border-white/20 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/60 focus:bg-white/20 transition group-hover:border-white/30"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-300/90">Password</label>
+                <div className="relative group">
+                  <Key className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-400 transition" />
+                  <input
+                    type={showPass ? 'text' : 'password'}
+                    value={loginPass}
+                    onChange={(e) => setLoginPass(e.target.value)}
+                    placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;"
+                    autoComplete="current-password"
+                    className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-white/10 border border-white/20 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/60 focus:bg-white/20 transition group-hover:border-white/30"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPass(!showPass)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition"
+                    tabIndex={-1}
+                  >
+                    {showPass ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loggingIn}
+                className="w-full py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-50 text-white font-semibold text-xs rounded-xl shadow-lg shadow-blue-600/30 transition flex items-center justify-center gap-2 relative overflow-hidden group/btn"
+              >
+                <div className="absolute inset-0 bg-white/10 translate-y-full group-hover/btn:translate-y-0 transition" />
+                {loggingIn ? (
+                  <span className="relative flex items-center gap-2">
+                    <svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+                    Signing in...
+                  </span>
+                ) : (
+                  <span className="relative flex items-center gap-2"><Lock className="w-3.5 h-3.5" />Sign In</span>
+                )}
+              </button>
+            </form>
           </div>
-
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Password</label>
-            <div className="relative">
-              <Key className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                type="password"
-                value={loginPass}
-                onChange={(e) => setLoginPass(e.target.value)}
-                placeholder="password"
-                className="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-red-500"
-              />
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loggingIn}
-            className="w-full py-2.5 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-lg transition"
-          >
-            {loggingIn ? 'Signing in...' : 'Sign In'}
-          </button>
-        </form>
-
-        <p className="text-[10px] text-center text-slate-400 bg-slate-50 dark:bg-slate-700/30 p-2 rounded-lg">
-          Supabase Auth or local fallback: <span className="font-bold text-slate-700 dark:text-slate-200">admin / admin123</span>
-        </p>
+        </div>
       </div>
     );
   }
@@ -306,15 +350,12 @@ export const AdminApp: React.FC = () => {
               />
             </div>
 
-            <div>
-              <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Avatar Image URL</label>
-              <input
-                type="text"
-                value={personalForm.avatarUrl}
-                onChange={(e) => setPersonalForm({ ...personalForm, avatarUrl: e.target.value })}
-                className="w-full mt-1 p-2 bg-slate-50 dark:bg-slate-700 rounded-lg text-xs border border-slate-200 dark:border-slate-600"
-              />
-            </div>
+            <ImageUpload
+              currentUrl={personalForm.avatarUrl}
+              folder="avatars"
+              onUrlChange={(url) => setPersonalForm({ ...personalForm, avatarUrl: url })}
+              label="Avatar Image"
+            />
 
             <div>
               <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Location</label>
@@ -434,15 +475,12 @@ export const AdminApp: React.FC = () => {
                   </select>
                 </div>
 
-                <div>
-                  <label className="text-xs font-semibold">Image URL</label>
-                  <input
-                    type="text"
-                    value={editingProject.imageUrl || ''}
-                    onChange={(e) => setEditingProject({ ...editingProject, imageUrl: e.target.value })}
-                    className="w-full mt-1 p-2 bg-white dark:bg-slate-700 rounded-lg text-xs border border-slate-200 dark:border-slate-600"
-                  />
-                </div>
+                <ImageUpload
+                  currentUrl={editingProject.imageUrl || ''}
+                  folder="projects"
+                  onUrlChange={(url) => setEditingProject({ ...editingProject, imageUrl: url })}
+                  label="Project Image"
+                />
 
                 <div>
                   <label className="text-xs font-semibold">Tech Stack (comma separated)</label>
@@ -653,6 +691,292 @@ export const AdminApp: React.FC = () => {
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* EXPERIENCE TAB */}
+      {activeTab === 'experience' && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white">Work Experience ({experience.length})</h2>
+            <button
+              onClick={() => setEditingExp({ company: '', role: '', period: '', location: '', description: '', achievements: [], technologies: [] })}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-amber-600 text-white font-bold text-xs rounded-xl shadow-md hover:bg-amber-700 transition"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Experience</span>
+            </button>
+          </div>
+
+          {editingExp && (
+            <div className="bg-slate-50 dark:bg-slate-800 p-6 rounded-2xl border border-amber-500/50 shadow-xl space-y-4">
+              <h3 className="text-sm font-bold text-amber-600">{editingExp.id ? 'Edit Experience' : 'Add Experience'}</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-semibold">Company</label>
+                  <input type="text" value={editingExp.company || ''}
+                    onChange={(e) => setEditingExp({ ...editingExp, company: e.target.value })}
+                    className="w-full mt-1 p-2 bg-white dark:bg-slate-700 rounded-lg text-xs border border-slate-200 dark:border-slate-600" />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold">Role</label>
+                  <input type="text" value={editingExp.role || ''}
+                    onChange={(e) => setEditingExp({ ...editingExp, role: e.target.value })}
+                    className="w-full mt-1 p-2 bg-white dark:bg-slate-700 rounded-lg text-xs border border-slate-200 dark:border-slate-600" />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold">Period</label>
+                  <input type="text" value={editingExp.period || ''} placeholder="e.g. 2023 - Present"
+                    onChange={(e) => setEditingExp({ ...editingExp, period: e.target.value })}
+                    className="w-full mt-1 p-2 bg-white dark:bg-slate-700 rounded-lg text-xs border border-slate-200 dark:border-slate-600" />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold">Location</label>
+                  <input type="text" value={editingExp.location || ''}
+                    onChange={(e) => setEditingExp({ ...editingExp, location: e.target.value })}
+                    className="w-full mt-1 p-2 bg-white dark:bg-slate-700 rounded-lg text-xs border border-slate-200 dark:border-slate-600" />
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-semibold">Description</label>
+                <textarea rows={2} value={editingExp.description || ''}
+                  onChange={(e) => setEditingExp({ ...editingExp, description: e.target.value })}
+                  className="w-full mt-1 p-2 bg-white dark:bg-slate-700 rounded-lg text-xs border border-slate-200 dark:border-slate-600 resize-none" />
+              </div>
+              <div>
+                <label className="text-xs font-semibold">Achievements (one per line)</label>
+                <textarea rows={3} value={(editingExp.achievements || []).join('\n')}
+                  onChange={(e) => setEditingExp({ ...editingExp, achievements: e.target.value.split('\n').filter(Boolean) })}
+                  className="w-full mt-1 p-2 bg-white dark:bg-slate-700 rounded-lg text-xs border border-slate-200 dark:border-slate-600 resize-none" />
+              </div>
+              <div>
+                <label className="text-xs font-semibold">Technologies (comma separated)</label>
+                <input type="text" value={(editingExp.technologies || []).join(', ')}
+                  onChange={(e) => setEditingExp({ ...editingExp, technologies: e.target.value.split(',').map((s) => s.trim()).filter(Boolean) })}
+                  className="w-full mt-1 p-2 bg-white dark:bg-slate-700 rounded-lg text-xs border border-slate-200 dark:border-slate-600" />
+              </div>
+              <div className="flex items-center gap-3">
+                <button onClick={() => { if (!editingExp.company) return; if (editingExp.id) { updateExperience(editingExp.id, editingExp as any); } else { addExperience(editingExp as any); } setEditingExp(null); }}
+                  className="px-4 py-2 bg-amber-600 text-white font-bold text-xs rounded-xl shadow-md hover:bg-amber-700 transition">Save</button>
+                <button onClick={() => setEditingExp(null)}
+                  className="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs rounded-xl">Cancel</button>
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-3">
+            {experience.map((e) => (
+              <div key={e.id} className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center justify-between">
+                <div className="truncate">
+                  <h4 className="text-xs font-bold text-slate-900 dark:text-white">{e.role} <span className="text-amber-500 font-semibold">@ {e.company}</span></h4>
+                  <span className="text-[10px] text-slate-400">{e.period} &middot; {e.location}</span>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button onClick={() => setEditingExp(e)} className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-200 hover:text-amber-600"><Edit3 className="w-4 h-4" /></button>
+                  <button onClick={() => deleteExperience(e.id)} className="p-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100"><Trash2 className="w-4 h-4" /></button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Education */}
+          <div className="pt-6 border-t border-slate-200 dark:border-slate-700">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white">Education ({education.length})</h2>
+              <button onClick={() => setEditingExp({
+                id: 'edu-new', company: '', role: '', period: '', location: '',
+                description: '', achievements: [], technologies: [],
+                _isEducation: true, institution: '', degree: '', field: '', year: '', grade: '', highlights: []
+              } as any)}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600 text-white font-bold text-xs rounded-xl shadow-md hover:bg-indigo-700 transition">
+                <Plus className="w-4 h-4" />
+                <span>Add Education</span>
+              </button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {education.map((edu) => (
+                <div key={edu.id} className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-900 dark:text-white">{edu.degree}</h4>
+                      <span className="text-[10px] text-indigo-500 font-semibold">{edu.institution}</span>
+                      <div className="text-[10px] text-slate-400">{edu.year} {edu.grade ? `| ${edu.grade}` : ''}</div>
+                    </div>
+                    <button onClick={() => deleteEducation(edu.id)} className="p-1 text-rose-500 hover:bg-rose-50 rounded"><Trash2 className="w-3.5 h-3.5" /></button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TESTIMONIALS TAB */}
+      {activeTab === 'testimonials' && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white">Testimonials ({testimonials.length})</h2>
+            <button
+              onClick={() => setEditingTest({ clientName: '', role: '', company: '', avatarUrl: '', quote: '', rating: 5 })}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-pink-600 text-white font-bold text-xs rounded-xl shadow-md hover:bg-pink-700 transition"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Testimonial</span>
+            </button>
+          </div>
+
+          {editingTest && (
+            <div className="bg-slate-50 dark:bg-slate-800 p-6 rounded-2xl border border-pink-500/50 shadow-xl space-y-4">
+              <h3 className="text-sm font-bold text-pink-600">{editingTest.id ? 'Edit Testimonial' : 'Add Testimonial'}</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-semibold">Client Name</label>
+                  <input type="text" value={editingTest.clientName || ''}
+                    onChange={(e) => setEditingTest({ ...editingTest, clientName: e.target.value })}
+                    className="w-full mt-1 p-2 bg-white dark:bg-slate-700 rounded-lg text-xs border border-slate-200 dark:border-slate-600" />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold">Role</label>
+                  <input type="text" value={editingTest.role || ''}
+                    onChange={(e) => setEditingTest({ ...editingTest, role: e.target.value })}
+                    className="w-full mt-1 p-2 bg-white dark:bg-slate-700 rounded-lg text-xs border border-slate-200 dark:border-slate-600" />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold">Company</label>
+                  <input type="text" value={editingTest.company || ''}
+                    onChange={(e) => setEditingTest({ ...editingTest, company: e.target.value })}
+                    className="w-full mt-1 p-2 bg-white dark:bg-slate-700 rounded-lg text-xs border border-slate-200 dark:border-slate-600" />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold">Rating (1-5)</label>
+                  <select value={editingTest.rating || 5}
+                    onChange={(e) => setEditingTest({ ...editingTest, rating: parseInt(e.target.value) })}
+                    className="w-full mt-1 p-2 bg-white dark:bg-slate-700 rounded-lg text-xs border border-slate-200 dark:border-slate-600">
+                    {[1,2,3,4,5].map((r) => <option key={r} value={r}>{r} Star{r > 1 ? 's' : ''}</option>)}
+                  </select>
+                </div>
+              </div>
+              <ImageUpload currentUrl={editingTest.avatarUrl || ''} folder="avatars"
+                onUrlChange={(url) => setEditingTest({ ...editingTest, avatarUrl: url })} label="Avatar Image" />
+              <div>
+                <label className="text-xs font-semibold">Quote</label>
+                <textarea rows={3} value={editingTest.quote || ''}
+                  onChange={(e) => setEditingTest({ ...editingTest, quote: e.target.value })}
+                  className="w-full mt-1 p-2 bg-white dark:bg-slate-700 rounded-lg text-xs border border-slate-200 dark:border-slate-600 resize-none" />
+              </div>
+              <div className="flex items-center gap-3">
+                <button onClick={() => { if (!editingTest.clientName) return; if (editingTest.id) { updateTestimonial(editingTest.id, editingTest as any); } else { addTestimonial(editingTest as any); } setEditingTest(null); }}
+                  className="px-4 py-2 bg-pink-600 text-white font-bold text-xs rounded-xl shadow-md hover:bg-pink-700 transition">Save</button>
+                <button onClick={() => setEditingTest(null)}
+                  className="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs rounded-xl">Cancel</button>
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {testimonials.map((t) => (
+              <div key={t.id} className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center justify-between">
+                <div className="flex items-center gap-3 truncate">
+                  <img src={t.avatarUrl} alt="" className="w-10 h-10 rounded-full object-cover shrink-0" />
+                  <div className="truncate">
+                    <h4 className="text-xs font-bold text-slate-900 dark:text-white">{t.clientName}</h4>
+                    <span className="text-[10px] text-pink-500 font-semibold">{t.role} @ {t.company}</span>
+                    <div className="text-[9px] text-slate-400 truncate">{t.quote.slice(0, 60)}...</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button onClick={() => setEditingTest(t)} className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-200 hover:text-pink-600"><Edit3 className="w-4 h-4" /></button>
+                  <button onClick={() => deleteTestimonial(t.id)} className="p-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100"><Trash2 className="w-4 h-4" /></button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* BLOG TAB */}
+      {activeTab === 'blog' && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white">Blog Articles ({blogs.length})</h2>
+            <button
+              onClick={() => setEditingBlog({ title: '', slug: '', tag: 'General', excerpt: '', content: '', readTime: '5 min read', date: '', coverImage: '', published: true })}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600 text-white font-bold text-xs rounded-xl shadow-md hover:bg-indigo-700 transition"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Article</span>
+            </button>
+          </div>
+
+          {editingBlog && (
+            <div className="bg-slate-50 dark:bg-slate-800 p-6 rounded-2xl border border-indigo-500/50 shadow-xl space-y-4">
+              <h3 className="text-sm font-bold text-indigo-600">{editingBlog.id ? 'Edit Article' : 'Add Article'}</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-semibold">Title</label>
+                  <input type="text" value={editingBlog.title || ''}
+                    onChange={(e) => setEditingBlog({ ...editingBlog, title: e.target.value })}
+                    className="w-full mt-1 p-2 bg-white dark:bg-slate-700 rounded-lg text-xs border border-slate-200 dark:border-slate-600" />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold">Slug</label>
+                  <input type="text" value={editingBlog.slug || ''} placeholder="my-article-slug"
+                    onChange={(e) => setEditingBlog({ ...editingBlog, slug: e.target.value })}
+                    className="w-full mt-1 p-2 bg-white dark:bg-slate-700 rounded-lg text-xs border border-slate-200 dark:border-slate-600" />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold">Tag</label>
+                  <input type="text" value={editingBlog.tag || 'General'}
+                    onChange={(e) => setEditingBlog({ ...editingBlog, tag: e.target.value })}
+                    className="w-full mt-1 p-2 bg-white dark:bg-slate-700 rounded-lg text-xs border border-slate-200 dark:border-slate-600" />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold">Read Time</label>
+                  <input type="text" value={editingBlog.readTime || '5 min read'}
+                    onChange={(e) => setEditingBlog({ ...editingBlog, readTime: e.target.value })}
+                    className="w-full mt-1 p-2 bg-white dark:bg-slate-700 rounded-lg text-xs border border-slate-200 dark:border-slate-600" />
+                </div>
+              </div>
+              <ImageUpload currentUrl={editingBlog.coverImage || ''} folder="blogs"
+                onUrlChange={(url) => setEditingBlog({ ...editingBlog, coverImage: url })} label="Cover Image" />
+              <div>
+                <label className="text-xs font-semibold">Excerpt</label>
+                <textarea rows={2} value={editingBlog.excerpt || ''}
+                  onChange={(e) => setEditingBlog({ ...editingBlog, excerpt: e.target.value })}
+                  className="w-full mt-1 p-2 bg-white dark:bg-slate-700 rounded-lg text-xs border border-slate-200 dark:border-slate-600 resize-none" />
+              </div>
+              <div>
+                <label className="text-xs font-semibold">Content (Markdown)</label>
+                <textarea rows={6} value={editingBlog.content || ''}
+                  onChange={(e) => setEditingBlog({ ...editingBlog, content: e.target.value })}
+                  className="w-full mt-1 p-2 bg-white dark:bg-slate-700 rounded-lg text-xs border border-slate-200 dark:border-slate-600 resize-none font-mono" />
+              </div>
+              <div className="flex items-center gap-3">
+                <button onClick={() => { if (!editingBlog.title) return; if (editingBlog.id) { updateBlog(editingBlog.id, editingBlog as any); } else { addBlog(editingBlog as any); } setEditingBlog(null); }}
+                  className="px-4 py-2 bg-indigo-600 text-white font-bold text-xs rounded-xl shadow-md hover:bg-indigo-700 transition">Save Article</button>
+                <button onClick={() => setEditingBlog(null)}
+                  className="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs rounded-xl">Cancel</button>
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 gap-3">
+            {blogs.map((b) => (
+              <div key={b.id} className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center justify-between">
+                <div className="flex items-center gap-3 truncate">
+                  {b.coverImage && <img src={b.coverImage} alt="" className="w-10 h-10 rounded-lg object-cover shrink-0" />}
+                  <div className="truncate">
+                    <h4 className="text-xs font-bold text-slate-900 dark:text-white truncate">{b.title}</h4>
+                    <span className="text-[10px] text-indigo-500 font-semibold">{b.tag} &middot; {b.readTime}</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button onClick={() => setEditingBlog(b)} className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-200 hover:text-indigo-600"><Edit3 className="w-4 h-4" /></button>
+                  <button onClick={() => deleteBlog(b.id)} className="p-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100"><Trash2 className="w-4 h-4" /></button>
                 </div>
               </div>
             ))}

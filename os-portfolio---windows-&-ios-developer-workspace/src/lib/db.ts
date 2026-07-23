@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import type { PersonalInfo, SkillItem, ProjectItem, ExperienceItem, EducationItem, TestimonialItem, ContactMessage, OSSettings } from '../types';
+import type { PersonalInfo, SkillItem, ProjectItem, ExperienceItem, EducationItem, TestimonialItem, ContactMessage, BlogPost, OSSettings } from '../types';
 
 function table<T extends { id: string | number }>(name: string) {
   return {
@@ -38,6 +38,7 @@ export type Tables = {
   education: EducationItem;
   testimonials: TestimonialItem;
   contact_messages: ContactMessage;
+  blog_posts: BlogPost;
   settings: OSSettings & { id: number };
 };
 
@@ -49,5 +50,6 @@ export const db = {
   education: table<Tables['education']>('education'),
   testimonials: table<Tables['testimonials']>('testimonials'),
   contactMessages: table<Tables['contact_messages']>('contact_messages'),
+  blogPosts: table<Tables['blog_posts']>('blog_posts'),
   settings: table<Tables['settings']>('settings'),
 };
