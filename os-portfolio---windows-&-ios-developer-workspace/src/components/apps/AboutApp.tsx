@@ -1,6 +1,6 @@
 import React from 'react';
 import { usePortfolio } from '../../context/PortfolioContext';
-import { Download, ExternalLink, MapPin, Mail, Phone, MessageCircle, Award, Shield, CheckCircle2, Briefcase, Code, Users, TrendingUp, Globe, Github, Linkedin, Twitter } from 'lucide-react';
+import { Download, ExternalLink, MapPin, Mail, Phone, MessageCircle, Award, Shield, CheckCircle2, Briefcase, Code, Users, TrendingUp, Globe, Github, Linkedin, Twitter, Facebook } from 'lucide-react';
 
 const CONTACT_ICONS: Record<string, React.ReactNode> = {
   email: <Mail className="w-4 h-4" />,
@@ -13,8 +13,13 @@ const SOCIAL_ICONS: Record<string, React.ReactNode> = {
   github: <Github className="w-4 h-4" />,
   linkedin: <Linkedin className="w-4 h-4" />,
   twitter: <Twitter className="w-4 h-4" />,
-  devto: <Code className="w-4 h-4" />,
+  facebook: <Facebook className="w-4 h-4" />,
   website: <Globe className="w-4 h-4" />,
+  devto: <Facebook className="w-4 h-4" />,
+};
+
+const SOCIAL_LABELS: Record<string, string> = {
+  devto: 'facebook',
 };
 
 export const AboutApp: React.FC = () => {
@@ -149,7 +154,7 @@ export const AboutApp: React.FC = () => {
             <a key={key} href={url} target="_blank" rel="noreferrer"
               className="flex items-center gap-2 p-2.5 rounded-xl bg-white/5 hover:bg-blue-500/20 text-xs font-semibold capitalize text-slate-300 hover:text-white transition border border-white/5 hover:border-blue-500/30">
               {SOCIAL_ICONS[key] || <Globe className="w-4 h-4" />}
-              <span>{key}</span>
+              <span>{SOCIAL_LABELS[key] || key}</span>
             </a>
           ))}
         </div>

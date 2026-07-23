@@ -26,7 +26,11 @@ export const ContactApp: React.FC = () => {
   };
 
   const socialIcons: Record<string, string> = {
-    github: 'Github', linkedin: 'Linkedin', twitter: 'Twitter', devto: 'Globe', website: 'Globe'
+    github: 'Github', linkedin: 'Linkedin', twitter: 'Twitter', facebook: 'Facebook', website: 'Globe', devto: 'Facebook'
+  };
+
+  const socialLabels: Record<string, string> = {
+    devto: 'facebook',
   };
 
   const phoneIsWhatsApp = personalInfo.phone && /^\+/.test(personalInfo.phone);
@@ -144,7 +148,7 @@ export const ContactApp: React.FC = () => {
                 <a key={platform} href={url} target="_blank" rel="noreferrer"
                   className="flex items-center gap-2 p-2.5 rounded-xl bg-white/5 hover:bg-cyan-500/20 text-xs font-semibold capitalize text-slate-300 hover:text-white transition border border-white/5 hover:border-cyan-500/30">
                   <IconHelper name={socialIcons[platform] || 'Globe'} className="w-3.5 h-3.5 text-cyan-400" />
-                  <span className="truncate">{platform}</span>
+                  <span className="truncate">{socialLabels[platform] || platform}</span>
                 </a>
               ))}
             </div>
