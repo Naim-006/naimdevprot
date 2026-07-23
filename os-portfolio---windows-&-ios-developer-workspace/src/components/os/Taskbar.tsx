@@ -13,6 +13,7 @@ export const Taskbar: React.FC = () => {
     windows,
     openWindow,
     focusWindow,
+    minimizeWindow,
     activeWindowId,
     toggleSpotlight,
     t
@@ -62,7 +63,9 @@ export const Taskbar: React.FC = () => {
               key={app.id}
               onClick={(e) => {
                 e.stopPropagation();
-                if (isOpen) {
+                if (isOpen && isFocused) {
+                  minimizeWindow(app.id as AppId);
+                } else if (isOpen) {
                   focusWindow(app.id as AppId);
                 } else {
                   openWindow(app.id as AppId);

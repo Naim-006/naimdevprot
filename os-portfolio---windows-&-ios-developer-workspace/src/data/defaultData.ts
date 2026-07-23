@@ -289,8 +289,8 @@ In this benchmark study, we test gesture responsiveness, cold boot time, and mem
 ];
 
 export const DEFAULT_SETTINGS: OSSettings = {
-  wallpaper: 'ocean-dream',
-  lockWallpaper: 'ios-gradient',
+  wallpaper: 'palm-trees',
+  lockWallpaper: 'ios-fluid',
   accentColor: '#3b82f6',
   osMode: 'auto',
   soundEnabled: true,
@@ -373,6 +373,8 @@ export const WALLPAPERS: WallpaperDef[] = [
   { id: 'autumn-leaves', name: 'Autumn Leaves', url: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1920&q=80' },
   { id: 'lake-sunset', name: 'Lake Sunset', url: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1920&q=80' },
   { id: 'canyon', name: 'Canyon View', url: 'https://images.unsplash.com/photo-1509316785289-025f5b846b35?auto=format&fit=crop&w=1920&q=80' },
+  // === Premium 4K Desktop Backgrounds ===
+  { id: 'premium-4k', name: 'Premium 4K', url: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1920&q=80' },
   // === OS-Style Landscape Wallpapers ===
   { id: 'win-bloom-img', name: 'Win Bloom', url: 'https://images.unsplash.com/photo-1614850715649-1d0106293bd1?auto=format&fit=crop&w=1920&q=80' },
   { id: 'mac-cliff', name: 'macOS Cliff', url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=1920&q=80' },
