@@ -17,10 +17,7 @@ export async function uploadImage(
     upsert: false,
   });
 
-  if (error) {
-    console.error('Upload error:', error.message);
-    return null;
-  }
+  if (error) return null;
 
   const { data: publicUrl } = supabase.storage.from(BUCKET).getPublicUrl(filePath);
   return { url: publicUrl.publicUrl, path: filePath };
@@ -30,10 +27,7 @@ export async function deleteImage(path: string): Promise<boolean> {
   if (!path || path.startsWith('http')) return true; // External URLs can't be deleted
 
   const { error } = await supabase.storage.from(BUCKET).remove([path]);
-  if (error) {
-    console.error('Delete error:', error.message);
-    return false;
-  }
+  if (error) return false;
   return true;
 }
 
