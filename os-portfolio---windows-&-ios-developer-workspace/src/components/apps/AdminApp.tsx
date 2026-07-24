@@ -108,8 +108,8 @@ export const AdminApp: React.FC = () => {
         <div className="absolute inset-0 backdrop-blur-[100px]" />
 
         {/* Animated floating orbs */}
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-1000" />
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl motion-safe:animate-pulse" />
+        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl motion-safe:animate-pulse delay-1000" />
 
         {/* Login card */}
         <div className="relative z-10 w-full max-w-sm">
@@ -585,7 +585,7 @@ export const AdminApp: React.FC = () => {
                           {m.type === 'video' ? (
                             <video src={m.url} className="w-12 h-8 rounded object-cover" />
                           ) : (
-                            <img src={m.url} className="w-12 h-8 rounded object-cover" />
+                            <img src={m.url} loading="lazy" className="w-12 h-8 rounded object-cover" />
                           )}
                           <span className="text-[10px] text-slate-400 truncate flex-1">{m.url.split('/').pop()}</span>
                         </div>
@@ -719,7 +719,7 @@ export const AdminApp: React.FC = () => {
                 className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center justify-between"
               >
                 <div className="flex items-center gap-3 truncate">
-                  <img src={p.imageUrl} alt={p.title} className="w-12 h-12 rounded-lg object-cover shrink-0" />
+                  <img src={p.imageUrl} alt={p.title} loading="lazy" className="w-12 h-12 rounded-lg object-cover shrink-0" />
                   <div className="truncate">
                     <h4 className="text-xs font-bold text-slate-900 dark:text-white truncate">{p.title}</h4>
                     <span className="text-[10px] text-purple-500 font-semibold">{p.category}</span>
@@ -1048,7 +1048,7 @@ export const AdminApp: React.FC = () => {
             {testimonials.map((t) => (
               <div key={t.id} className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center justify-between">
                 <div className="flex items-center gap-3 truncate">
-                  <img src={t.avatarUrl} alt="" className="w-10 h-10 rounded-full object-cover shrink-0" />
+                  <img src={t.avatarUrl} alt="" loading="lazy" className="w-10 h-10 rounded-full object-cover shrink-0" />
                   <div className="truncate">
                     <h4 className="text-xs font-bold text-slate-900 dark:text-white">{t.clientName}</h4>
                     <span className="text-[10px] text-pink-500 font-semibold">{t.role} @ {t.company}</span>
@@ -1135,7 +1135,7 @@ export const AdminApp: React.FC = () => {
             {blogs.map((b) => (
               <div key={b.id} className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center justify-between">
                 <div className="flex items-center gap-3 truncate">
-                  {b.coverImage && <img src={b.coverImage} alt="" className="w-10 h-10 rounded-lg object-cover shrink-0" />}
+                  {b.coverImage && <img src={b.coverImage} alt="" loading="lazy" className="w-10 h-10 rounded-lg object-cover shrink-0" />}
                   <div className="truncate">
                     <h4 className="text-xs font-bold text-slate-900 dark:text-white truncate">{b.title}</h4>
                     <span className="text-[10px] text-indigo-500 font-semibold">{b.tag} &middot; {b.readTime}</span>

@@ -16,16 +16,16 @@ interface DevToArticle {
   url: string;
 }
 
-export async function fetchBlogPosts(): Promise<BlogPost[]> {
+export async function fetchBlogPosts(opts?: { signal?: AbortSignal }): Promise<BlogPost[]> {
   // Check cache first
   const cached = localStorage.getItem(CACHE_KEY);
-  if (cached) {
+  if (cached && !opts?.signal?.aborted) {
     const { data, timestamp } = JSON.parse(cached);
     if (Date.now() - timestamp < CACHE_TTL) return data;
   }
 
   try {
-    const res = await fetch(`https://dev.to/api/articles?username=${DEVTO_USERNAME}&per_page=20`);
+    const res = await fetch(`https://dev.to/api/articles?username=${DEVTO_USERNAME}&per_page=20`, { signal: opts?.signal });
     if (!res.ok) throw new Error('Failed to fetch');
     const articles: DevToArticle[] = await res.json();
 

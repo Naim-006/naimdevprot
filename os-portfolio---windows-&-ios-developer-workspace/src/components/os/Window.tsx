@@ -63,6 +63,11 @@ export const WindowContainer: React.FC<WindowProps> = ({ id, children }) => {
     startX: 0, startY: 0, initialWinX: 0, initialWinY: 0, initialW: 0, initialH: 0
   });
 
+  const dragPosRef = useRef({ x: 0, y: 0 });
+  const rafRef = useRef<number>(0);
+  const resizePosRef = useRef({ x: 0, y: 0, w: 0, h: 0 });
+  const resizeRafRef = useRef<number>(0);
+
   const maxW = typeof window !== 'undefined' ? window.innerWidth : 1200;
   const maxH = typeof window !== 'undefined' ? window.innerHeight : 800;
 
@@ -75,6 +80,7 @@ export const WindowContainer: React.FC<WindowProps> = ({ id, children }) => {
   const isMaxd = win.isMaximized;
 
   // --- Drag ---
+
   const handlePointerDown = (e: React.PointerEvent) => {
     if (isMaxd) return;
     if ((e.target as HTMLElement).closest('button')) return;
@@ -86,6 +92,7 @@ export const WindowContainer: React.FC<WindowProps> = ({ id, children }) => {
       initialWinX: win.position.x, initialWinY: win.position.y,
       initialW: win.size.width, initialH: win.size.height
     };
+    dragPosRef.current = { x: win.position.x, y: win.position.y };
     try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); } catch {}
   };
 
@@ -95,13 +102,21 @@ export const WindowContainer: React.FC<WindowProps> = ({ id, children }) => {
     const dy = e.clientY - dragStartRef.current.startY;
     const newX = Math.max(-win.size.width + 120, Math.min(maxW - 80, dragStartRef.current.initialWinX + dx));
     const newY = Math.max(0, Math.min(maxH - TASKBAR_HEIGHT - 40, dragStartRef.current.initialWinY + dy));
-    updateWindowPos(id, { x: newX, y: newY });
+    dragPosRef.current = { x: newX, y: newY };
     setSnapZone(getSnapZone(e.clientX, e.clientY, maxW, maxH));
+    if (!rafRef.current) {
+      rafRef.current = requestAnimationFrame(() => {
+        updateWindowPos(id, dragPosRef.current);
+        rafRef.current = 0;
+      });
+    }
   };
 
   const handlePointerUp = (e: React.PointerEvent) => {
     if (isDragging) {
       setIsDragging(false);
+      if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = 0; }
+      updateWindowPos(id, dragPosRef.current);
       if (snapZone) {
         const p = getSnapPreview(snapZone, maxW, maxH);
         if (p && !isMaxd) { updateWindowPos(id, { x: p.x, y: p.y }); updateWindowSize(id, { width: p.width, height: p.height }); }
@@ -112,6 +127,13 @@ export const WindowContainer: React.FC<WindowProps> = ({ id, children }) => {
   };
 
   // --- Resize ---
+  const flushResize = () => {
+    const r = resizePosRef.current;
+    updateWindowSize(id, { width: r.w, height: r.h });
+    updateWindowPos(id, { x: r.x, y: r.y });
+    resizeRafRef.current = 0;
+  };
+
   const onResizeStart = (handle: ResizeHandle) => (e: React.PointerEvent) => {
     if (isMaxd) return;
     e.stopPropagation();
@@ -122,6 +144,7 @@ export const WindowContainer: React.FC<WindowProps> = ({ id, children }) => {
       initialWinX: win.position.x, initialWinY: win.position.y,
       initialW: win.size.width, initialH: win.size.height
     };
+    resizePosRef.current = { x: win.position.x, y: win.position.y, w: win.size.width, h: win.size.height };
     try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); } catch {}
   };
 
@@ -144,12 +167,16 @@ export const WindowContainer: React.FC<WindowProps> = ({ id, children }) => {
     if (resizing === 'bottom' || resizing === 'bottom-right') {
       newH = Math.max(MIN_H, Math.min(maxH - TASKBAR_HEIGHT - win.position.y - 20, dragStartRef.current.initialH + dy));
     }
-    updateWindowSize(id, { width: newW, height: newH });
-    if (resizing === 'left') updateWindowPos(id, { x: newX, y: win.position.y });
+    resizePosRef.current = { x: newX, y: win.position.y, w: newW, h: newH };
+    if (!resizeRafRef.current) {
+      resizeRafRef.current = requestAnimationFrame(flushResize);
+    }
   };
 
   const onResizeEnd = (e: React.PointerEvent) => {
     if (resizing) {
+      if (resizeRafRef.current) { cancelAnimationFrame(resizeRafRef.current); resizeRafRef.current = 0; }
+      flushResize();
       setResizing(null);
       try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch {}
     }
@@ -184,13 +211,14 @@ export const WindowContainer: React.FC<WindowProps> = ({ id, children }) => {
           left: isMaxd ? 0 : win.position.x,
           top: isMaxd ? 0 : win.position.y,
           width: isMaxd ? '100vw' : Math.min(win.size.width, maxW - 20),
-          height: isMaxd ? `calc(100vh - ${TASKBAR_HEIGHT}px)` : Math.min(win.size.height, maxH - TASKBAR_HEIGHT - 20)
+          height: isMaxd ? `calc(100vh - ${TASKBAR_HEIGHT}px)` : Math.min(win.size.height, maxH - TASKBAR_HEIGHT - 20),
+          willChange: 'transform, opacity',
         }}
         className={`fixed flex flex-col rounded-xl overflow-visible shadow-2xl ${
           isMaxd ? '!left-0 !top-0 !w-full !h-[calc(100vh-48px)] rounded-none border-none z-[80]' : ''
         } ${
-          isFocused ? 'border border-blue-500/50 shadow-blue-500/20 ring-1 ring-blue-500/30' : 'border border-white/20 opacity-98'
-        } bg-[#161618]/95 backdrop-blur-md text-white select-none`}
+          isFocused ? 'border border-blue-500/50 shadow-blue-500/20 ring-1 ring-blue-500/30' : 'border border-white/20 dark:border-white/20 opacity-98'
+        } bg-white dark:bg-[#161618]/95 text-gray-900 dark:text-white select-none`}
       >
         {/* Title Bar */}
         <div
@@ -200,21 +228,21 @@ export const WindowContainer: React.FC<WindowProps> = ({ id, children }) => {
           onDoubleClick={() => maximizeWindow(id)}
           className={`h-10 px-4 flex items-center justify-between select-none ${
             isMaxd ? 'cursor-default' : 'cursor-grab active:cursor-grabbing'
-          } border-b transition-colors ${isFocused ? 'bg-white/12 border-white/20' : 'bg-white/5 border-white/10'}`}
+          } border-b transition-colors ${isFocused ? 'bg-white/12 dark:bg-white/12 border-white/20 dark:border-white/20' : 'bg-white/5 dark:bg-white/5 border-white/10 dark:border-white/10'}`}
         >
           <div className="flex items-center gap-3 truncate">
             <IconHelper name={win.icon} className="w-4 h-4 text-blue-400 shrink-0" />
-            <span className="text-xs font-semibold text-slate-100 opacity-90 truncate">{win.title}</span>
+            <span className="text-xs font-semibold text-slate-700 dark:text-slate-100 opacity-90 truncate">{win.title}</span>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={(e) => { e.stopPropagation(); minimizeWindow(id); }} className="w-6 h-6 rounded-md flex items-center justify-center text-slate-300 hover:bg-white/15 hover:text-white transition text-xs" title={t('win.minimize')}><Minus className="w-3.5 h-3.5" /></button>
-            <button onClick={(e) => { e.stopPropagation(); maximizeWindow(id); }} className="w-6 h-6 rounded-md flex items-center justify-center text-slate-300 hover:bg-white/15 hover:text-white transition text-xs" title={isMaxd ? t('common.restore') : t('win.maximize')}>{isMaxd ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}</button>
-            <button onClick={(e) => { e.stopPropagation(); closeWindow(id); }} className="w-6 h-6 rounded-md flex items-center justify-center text-slate-300 hover:bg-rose-600 hover:text-white transition text-xs" title="Close"><X className="w-3.5 h-3.5" /></button>
+            <button onClick={(e) => { e.stopPropagation(); minimizeWindow(id); }} className="w-6 h-6 rounded-md flex items-center justify-center text-slate-500 dark:text-slate-300 hover:bg-black/10 dark:hover:bg-white/15 hover:text-slate-900 dark:hover:text-white transition text-xs" title={t('win.minimize')}><Minus className="w-3.5 h-3.5" /></button>
+            <button onClick={(e) => { e.stopPropagation(); maximizeWindow(id); }} className="w-6 h-6 rounded-md flex items-center justify-center text-slate-500 dark:text-slate-300 hover:bg-black/10 dark:hover:bg-white/15 hover:text-slate-900 dark:hover:text-white transition text-xs" title={isMaxd ? t('common.restore') : t('win.maximize')}>{isMaxd ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}</button>
+            <button onClick={(e) => { e.stopPropagation(); closeWindow(id); }} className="w-6 h-6 rounded-md flex items-center justify-center text-slate-500 dark:text-slate-300 hover:bg-rose-100 dark:hover:bg-rose-600 hover:text-rose-600 dark:hover:text-white transition text-xs" title="Close"><X className="w-3.5 h-3.5" /></button>
           </div>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden select-text text-slate-100 scrollbar-thin scrollbar-thumb-white/20">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden select-text text-slate-800 dark:text-slate-100 scrollbar-thin scrollbar-thumb-white/20 app-content-panel">
           {children}
         </div>
 

@@ -13,6 +13,14 @@ const CAT_COLORS: Record<string, string> = {
   'Cloud & DevOps': 'amber', 'Tools & Methods': 'cyan',
 };
 
+const CAT_STYLES: Record<string, { bg: string; text: string; border: string; from: string; to: string }> = {
+  blue:    { bg: 'bg-blue-500/20',    text: 'text-blue-400',    border: 'border-blue-500/20',    from: 'from-blue-500',    to: 'to-blue-400' },
+  purple:  { bg: 'bg-purple-500/20',  text: 'text-purple-400',  border: 'border-purple-500/20',  from: 'from-purple-500',  to: 'to-purple-400' },
+  emerald: { bg: 'bg-emerald-500/20', text: 'text-emerald-400', border: 'border-emerald-500/20', from: 'from-emerald-500', to: 'to-emerald-400' },
+  amber:   { bg: 'bg-amber-500/20',   text: 'text-amber-400',   border: 'border-amber-500/20',   from: 'from-amber-500',   to: 'to-amber-400' },
+  cyan:    { bg: 'bg-cyan-500/20',    text: 'text-cyan-400',    border: 'border-cyan-500/20',    from: 'from-cyan-500',    to: 'to-cyan-400' },
+};
+
 export const SkillsApp: React.FC = () => {
   const { skills } = usePortfolio();
   const [searchTerm, setSearchTerm] = useState('');
@@ -92,11 +100,12 @@ export const SkillsApp: React.FC = () => {
         ) : (
           filteredSkills.map((s) => {
             const catColor = CAT_COLORS[s.category] || 'blue';
+            const st = CAT_STYLES[catColor] || CAT_STYLES.blue;
             return (
               <div key={s.id} className="bg-white/5 backdrop-blur-sm p-4 rounded-xl border border-white/10 hover:border-white/20 transition space-y-2.5 group">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
-                    <div className={`p-2 rounded-lg bg-${catColor}-500/20 text-${catColor}-400`}>
+                    <div className={`p-2 rounded-lg ${st.bg} ${st.text}`}>
                       <IconHelper name={s.iconName || 'Code'} className="w-4 h-4" />
                     </div>
                     <div>
@@ -104,12 +113,12 @@ export const SkillsApp: React.FC = () => {
                       <span className="text-[10px] text-slate-500">{s.category}</span>
                     </div>
                   </div>
-                  <span className={`text-xs font-extrabold text-${catColor}-400 bg-${catColor}-500/10 px-2 py-0.5 rounded-full border border-${catColor}-500/20`}>
+                  <span className={`text-xs font-extrabold ${st.text} ${st.bg} px-2 py-0.5 rounded-full border ${st.border}`}>
                     {s.proficiency}%
                   </span>
                 </div>
                 <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
-                  <div className={`bg-gradient-to-r from-${catColor}-500 to-${catColor}-400 h-full rounded-full transition-all duration-700 ease-out`}
+                  <div className={`bg-gradient-to-r ${st.from} ${st.to} h-full rounded-full transition-all duration-700 ease-out`}
                     style={{ width: `${s.proficiency}%` }} />
                 </div>
               </div>

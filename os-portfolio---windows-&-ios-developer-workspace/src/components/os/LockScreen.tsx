@@ -24,7 +24,7 @@ export const LockScreen: React.FC = () => {
       setDateStr(now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' }));
     };
     updateTime();
-    const timer = setInterval(updateTime, 1000);
+    const timer = setInterval(updateTime, 15000);
     return () => clearInterval(timer);
   }, []);
 
@@ -42,12 +42,12 @@ export const LockScreen: React.FC = () => {
       onClick={handleUnlock}
       className="fixed inset-0 z-[100] flex flex-col items-center justify-between bg-cover bg-center select-none cursor-pointer"
       style={wallpaper.url.startsWith('radial-gradient') || wallpaper.url.startsWith('linear-gradient')
-        ? { backgroundImage: wallpaper.url }
-        : { backgroundImage: `url(${wallpaper.url})` }
+        ? { backgroundImage: wallpaper.url, willChange: 'transform, opacity' }
+        : { backgroundImage: `url(${wallpaper.url})`, willChange: 'transform, opacity' }
       }
     >
       {/* Dark overlay */}
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-black/40 dark:bg-black/40 backdrop-blur-sm" />
 
       {/* Top status bar */}
       <div className="relative z-10 w-full px-8 pt-6 flex items-center justify-between text-white/80 text-xs">

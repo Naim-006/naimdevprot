@@ -30,46 +30,41 @@ export const WallpaperPickerModal: React.FC<Props> = ({ onClose }) => {
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="bg-slate-900 rounded-2xl border border-white/10 w-full max-w-2xl shadow-2xl p-5 space-y-4 my-auto"
+        className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-white/10 w-full max-w-2xl shadow-2xl p-5 space-y-4 my-auto text-gray-900 dark:text-white"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-white/10 pb-3">
-          <h3 className="text-sm font-bold text-white flex items-center gap-2">
-            <Layers className="w-4 h-4 text-blue-400" />
+        <div className="flex items-center justify-between border-b border-gray-200 dark:border-white/10 pb-3">
+          <h3 className="text-sm font-bold flex items-center gap-2">
+            <Layers className="w-4 h-4 text-blue-500 dark:text-blue-400" />
             Change Wallpaper
           </h3>
-          <button onClick={onClose} className="p-1 rounded-lg hover:bg-white/10 text-slate-400 transition">
+          <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-200 dark:hover:bg-white/10 text-gray-500 dark:text-slate-400 transition">
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Wallpaper Grid — scrollable */}
-        <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2 max-h-60 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-white/10">
+        <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2 max-h-60 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-black/20 dark:scrollbar-thumb-white/10">
           {WALLPAPERS.map((wp) => (
             <button
               key={wp.id}
               onClick={() => handleSelect(wp)}
               className={`relative h-14 md:h-16 rounded-lg overflow-hidden border-2 shrink-0 transition ${
-                selectedWp?.id === wp.id ? 'border-blue-500 ring-2 ring-blue-500/50' : 'border-white/10 hover:border-white/30'
+                selectedWp?.id === wp.id ? 'border-blue-500 ring-2 ring-blue-500/50' : 'border-gray-300 dark:border-white/10 hover:border-gray-400 dark:hover:border-white/30'
               }`}
               style={isGradient(wp.url) ? { background: wp.url } : undefined}
               title={wp.name}
             >
-              {!isGradient(wp.url) && <img src={wp.url} alt={wp.name} className="w-full h-full object-cover" />}
+              {!isGradient(wp.url) && <img src={wp.url} alt={wp.name} loading="lazy" className="w-full h-full object-cover" />}
             </button>
           ))}
         </div>
 
-        {/* Selected preview + Apply buttons stacked together */}
         {selectedWp && (
-          <div className="space-y-3 bg-white/5 rounded-xl p-3 border border-white/10">
-            {/* Preview */}
-            <div className="h-20 md:h-24 rounded-lg overflow-hidden border border-white/10"
+          <div className="space-y-3 bg-gray-100/70 dark:bg-white/5 rounded-xl p-3 border border-gray-200 dark:border-white/10">
+            <div className="h-20 md:h-24 rounded-lg overflow-hidden border border-gray-300 dark:border-white/10"
               style={isGradient(selectedWp.url) ? { background: selectedWp.url } : undefined}>
-              {!isGradient(selectedWp.url) && <img src={selectedWp.url} alt="" className="w-full h-full object-cover" />}
+              {!isGradient(selectedWp.url) && <img src={selectedWp.url} alt="" loading="lazy" className="w-full h-full object-cover" />}
             </div>
-            {/* Apply buttons */}
             <div className="grid grid-cols-3 gap-2">
               <button onClick={() => apply('home')}
                 className="flex items-center justify-center gap-1.5 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl transition">
@@ -87,10 +82,9 @@ export const WallpaperPickerModal: React.FC<Props> = ({ onClose }) => {
           </div>
         )}
 
-        {/* Current wallpaper info */}
-        <div className="text-[10px] text-slate-500 text-center border-t border-white/10 pt-3">
-          Home: <span className="text-slate-300">{WALLPAPERS.find((w) => w.id === settings.wallpaper)?.name || 'None'}</span>
-          &nbsp;| Lock: <span className="text-slate-300">{WALLPAPERS.find((w) => w.id === settings.lockWallpaper)?.name || 'None'}</span>
+        <div className="text-[10px] text-gray-500 dark:text-slate-500 text-center border-t border-gray-200 dark:border-white/10 pt-3">
+          Home: <span className="text-gray-700 dark:text-slate-300">{WALLPAPERS.find((w) => w.id === settings.wallpaper)?.name || 'None'}</span>
+          &nbsp;| Lock: <span className="text-gray-700 dark:text-slate-300">{WALLPAPERS.find((w) => w.id === settings.lockWallpaper)?.name || 'None'}</span>
         </div>
       </motion.div>
     </div>

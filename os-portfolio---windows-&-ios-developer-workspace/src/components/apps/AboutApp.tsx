@@ -49,7 +49,7 @@ export const AboutApp: React.FC = () => {
         <div className="flex flex-col md:flex-row items-center gap-8 relative z-10">
           <div className="relative group shrink-0">
             <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-indigo-600 rounded-full blur-md opacity-50 group-hover:opacity-75 transition" />
-            <img src={personalInfo.avatarUrl} alt={personalInfo.name}
+            <img src={personalInfo.avatarUrl} alt={personalInfo.name} loading="lazy"
               className="relative w-28 h-28 md:w-36 md:h-36 rounded-full object-cover border-2 border-white/30 shadow-xl transition transform group-hover:scale-105" />
             <div className="absolute bottom-1 right-1 bg-emerald-500 text-white p-1.5 rounded-full border-2 border-white shadow-lg">
               <CheckCircle2 className="w-3.5 h-3.5" />

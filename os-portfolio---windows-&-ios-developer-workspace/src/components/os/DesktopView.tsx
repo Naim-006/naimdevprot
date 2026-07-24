@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
 import { usePortfolio } from '../../context/PortfolioContext';
 import { SYSTEM_APPS, WALLPAPERS } from '../../data/defaultData';
 import { IconHelper } from '../common/IconHelper';
@@ -9,21 +9,23 @@ import { SpotlightModal } from './SpotlightModal';
 import { WelcomeTourModal } from './WelcomeTourModal';
 import { WindowContainer } from './Window';
 import { WallpaperPickerModal } from './WallpaperPickerModal';
-import { AboutApp } from '../apps/AboutApp';
-import { SkillsApp } from '../apps/SkillsApp';
-import { ProjectsApp } from '../apps/ProjectsApp';
-import { ExperienceApp } from '../apps/ExperienceApp';
-import { TestimonialsApp } from '../apps/TestimonialsApp';
-import { ContactApp } from '../apps/ContactApp';
-import { BlogApp } from '../apps/BlogApp';
-import { TerminalApp } from '../apps/TerminalApp';
-import { SettingsApp } from '../apps/SettingsApp';
-import { AdminApp } from '../apps/AdminApp';
 import { AppId } from '../../types';
 import {
   RefreshCw, Terminal, Image, Shield, FolderGit2, Info,
   Folder, FileText, Trash2
 } from 'lucide-react';
+
+const AboutApp = lazy(() => import('../apps/AboutApp').then(m => ({ default: m.AboutApp })));
+const SkillsApp = lazy(() => import('../apps/SkillsApp').then(m => ({ default: m.SkillsApp })));
+const ProjectsApp = lazy(() => import('../apps/ProjectsApp').then(m => ({ default: m.ProjectsApp })));
+const ExperienceApp = lazy(() => import('../apps/ExperienceApp').then(m => ({ default: m.ExperienceApp })));
+const TestimonialsApp = lazy(() => import('../apps/TestimonialsApp').then(m => ({ default: m.TestimonialsApp })));
+const ContactApp = lazy(() => import('../apps/ContactApp').then(m => ({ default: m.ContactApp })));
+const BlogApp = lazy(() => import('../apps/BlogApp').then(m => ({ default: m.BlogApp })));
+const TerminalApp = lazy(() => import('../apps/TerminalApp').then(m => ({ default: m.TerminalApp })));
+const SettingsApp = lazy(() => import('../apps/SettingsApp').then(m => ({ default: m.SettingsApp })));
+const AdminApp = lazy(() => import('../apps/AdminApp').then(m => ({ default: m.AdminApp })));
+const GameHubApp = lazy(() => import('../apps/GameHubApp').then(m => ({ default: m.GameHubApp })));
 
 interface DesktopItem {
   id: string;
@@ -119,7 +121,7 @@ export const DesktopView: React.FC = () => {
       style={isGradient ? { backgroundImage: activeWp.url } : { backgroundImage: `url(${activeWp.url})` }}
     >
       {/* Dark Overlay Tint */}
-      {!isGradient && <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px] pointer-events-none" />}
+      {!isGradient && <div className="absolute inset-0 bg-black/30 dark:bg-black/20 backdrop-blur-[1px] pointer-events-none" />}
 
       {/* Brightness Screen Filter Overlay */}
       {brightness < 100 && (
@@ -187,16 +189,19 @@ export const DesktopView: React.FC = () => {
       </div>
 
       {/* Active Windows Render Layer */}
-      <WindowContainer id="about"><AboutApp /></WindowContainer>
-      <WindowContainer id="skills"><SkillsApp /></WindowContainer>
-      <WindowContainer id="projects"><ProjectsApp /></WindowContainer>
-      <WindowContainer id="experience"><ExperienceApp /></WindowContainer>
-      <WindowContainer id="testimonials"><TestimonialsApp /></WindowContainer>
-      <WindowContainer id="contact"><ContactApp /></WindowContainer>
-      <WindowContainer id="blog"><BlogApp /></WindowContainer>
-      <WindowContainer id="terminal"><TerminalApp /></WindowContainer>
-      <WindowContainer id="settings"><SettingsApp /></WindowContainer>
-      <WindowContainer id="admin"><AdminApp /></WindowContainer>
+      <Suspense fallback={null}>
+        <WindowContainer id="about"><AboutApp /></WindowContainer>
+        <WindowContainer id="skills"><SkillsApp /></WindowContainer>
+        <WindowContainer id="projects"><ProjectsApp /></WindowContainer>
+        <WindowContainer id="experience"><ExperienceApp /></WindowContainer>
+        <WindowContainer id="testimonials"><TestimonialsApp /></WindowContainer>
+        <WindowContainer id="contact"><ContactApp /></WindowContainer>
+        <WindowContainer id="blog"><BlogApp /></WindowContainer>
+        <WindowContainer id="terminal"><TerminalApp /></WindowContainer>
+        <WindowContainer id="settings"><SettingsApp /></WindowContainer>
+        <WindowContainer id="admin"><AdminApp /></WindowContainer>
+        <WindowContainer id="gamehub"><GameHubApp /></WindowContainer>
+      </Suspense>
 
       {/* Start Menu Flyout */}
       <StartMenu />
@@ -218,55 +223,55 @@ export const DesktopView: React.FC = () => {
             top: Math.min(contextMenu.y, window.innerHeight - 320),
             left: Math.min(contextMenu.x, window.innerWidth - 200),
           }}
-          className="fixed bg-[#1f1f23]/95 backdrop-blur-2xl rounded-xl border border-white/20 shadow-2xl p-2 z-50 min-w-44 space-y-1 text-xs select-none animate-in fade-in zoom-in-95 text-white"
+          className="fixed bg-white/95 dark:bg-[#1f1f23]/95 backdrop-blur-2xl rounded-xl border border-gray-200 dark:border-white/20 shadow-2xl p-2 z-50 min-w-44 space-y-1 text-xs select-none animate-in fade-in zoom-in-95 text-gray-900 dark:text-white"
         >
           <button
             onClick={() => { showToast(t('notif.desktopRefreshed'), ''); closeContextMenu(); }}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/10 font-medium transition"
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-black/10 dark:hover:bg-white/10 font-medium transition"
           >
-            <RefreshCw className="w-4 h-4 text-blue-400" />
+            <RefreshCw className="w-4 h-4 text-blue-500 dark:text-blue-400" />
             <span>{t('ctx.refresh')}</span>
           </button>
 
           <button
             onClick={addDesktopFolder}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/10 font-medium transition"
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-black/10 dark:hover:bg-white/10 font-medium transition"
           >
-            <Folder className="w-4 h-4 text-amber-400" />
+            <Folder className="w-4 h-4 text-amber-500 dark:text-amber-400" />
             <span>{t('ctx.newFolder')}</span>
           </button>
 
-          <div className="my-1 border-t border-white/10" />
+          <div className="my-1 border-t border-gray-200 dark:border-white/10" />
 
           <button
             onClick={() => { openWindow('terminal'); closeContextMenu(); }}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/10 font-medium transition"
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-black/10 dark:hover:bg-white/10 font-medium transition"
           >
-            <Terminal className="w-4 h-4 text-emerald-400" />
+            <Terminal className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
             <span>{t('ctx.openTerminal')}</span>
           </button>
 
           <button
             onClick={() => { openWindow('projects'); closeContextMenu(); }}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/10 font-medium transition"
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-black/10 dark:hover:bg-white/10 font-medium transition"
           >
-            <FolderGit2 className="w-4 h-4 text-purple-400" />
+            <FolderGit2 className="w-4 h-4 text-purple-500 dark:text-purple-400" />
             <span>{t('ctx.viewProjects')}</span>
           </button>
 
-          <div className="my-1 border-t border-white/10" />
+          <div className="my-1 border-t border-gray-200 dark:border-white/10" />
 
           <button
             onClick={() => { setShowWallpaperPicker(true); closeContextMenu(); }}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/10 font-medium transition"
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-black/10 dark:hover:bg-white/10 font-medium transition"
           >
-            <Image className="w-4 h-4 text-amber-400" />
+            <Image className="w-4 h-4 text-amber-500 dark:text-amber-400" />
             <span>Change Wallpaper</span>
           </button>
 
           <button
             onClick={() => { openWindow('admin'); closeContextMenu(); }}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/10 text-rose-400 font-medium transition"
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-black/10 dark:hover:bg-white/10 text-red-500 dark:text-rose-400 font-medium transition"
           >
             <Shield className="w-4 h-4" />
             <span>{t('ctx.admin')}</span>
@@ -274,7 +279,7 @@ export const DesktopView: React.FC = () => {
 
           {selectedItemId && desktopItems.find((d) => d.id === selectedItemId) && (
             <>
-              <div className="my-1 border-t border-white/10" />
+              <div className="my-1 border-t border-gray-200 dark:border-white/10" />
               <button
                 onClick={() => {
                   setDesktopItems((prev) => prev.filter((item) => item.id !== selectedItemId));
@@ -282,7 +287,7 @@ export const DesktopView: React.FC = () => {
                   showToast(t('folder.deleted'), '');
                   closeContextMenu();
                 }}
-                className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/10 text-rose-400 font-medium transition"
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-black/10 dark:hover:bg-white/10 text-red-500 dark:text-rose-400 font-medium transition"
               >
                 <Trash2 className="w-4 h-4" />
                 <span>{t('ctx.deleteItem')}</span>

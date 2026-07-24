@@ -15,5 +15,18 @@ export default defineConfig(() => {
       hmr: process.env.DISABLE_HMR !== 'true',
       watch: process.env.DISABLE_HMR === 'true' ? null : {},
     },
+    build: {
+      target: 'es2020',
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            vendor: ['react', 'react-dom'],
+            motion: ['motion'],
+            supabase: ['@supabase/supabase-js'],
+            icons: ['lucide-react'],
+          },
+        },
+      },
+    },
   };
 });

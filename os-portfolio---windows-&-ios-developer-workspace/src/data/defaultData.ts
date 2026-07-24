@@ -320,7 +320,8 @@ export const SYSTEM_APPS: AppDefinition[] = [
   { id: 'blog', title: 'Blog', iconName: 'Newspaper', category: 'portfolio', color: '#3b82f6', bgGradient: 'from-blue-500 to-cyan-400' },
   { id: 'terminal', title: 'CLI Terminal', iconName: 'Terminal', category: 'system', color: '#22c55e', bgGradient: 'from-green-600 to-emerald-800' },
   { id: 'settings', title: 'OS Settings', iconName: 'Settings', category: 'system', color: '#64748b', bgGradient: 'from-slate-500 to-slate-700' },
-  { id: 'admin', title: 'Admin Panel', iconName: 'Shield', category: 'system', badge: 'Secured', color: '#ef4444', bgGradient: 'from-red-500 to-rose-700' }
+  { id: 'admin', title: 'Admin Panel', iconName: 'Shield', category: 'system', badge: 'Secured', color: '#ef4444', bgGradient: 'from-red-500 to-rose-700' },
+  { id: 'gamehub', title: 'Game Hub', iconName: 'Gamepad2', category: 'core', color: '#f59e0b', bgGradient: 'from-amber-500 to-orange-600' }
 ];
 
 export interface WallpaperDef {

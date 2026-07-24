@@ -12,6 +12,18 @@ const DirSetter: React.FC = () => {
   return null;
 };
 
+const DarkModeSetter: React.FC = () => {
+  const { settings } = usePortfolio();
+  useEffect(() => {
+    if (settings.darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [settings.darkMode]);
+  return null;
+};
+
 const PortfolioShell: React.FC = () => {
   const { activeOSMode, isLocked } = usePortfolio();
 
@@ -24,6 +36,7 @@ export default function App() {
   return (
     <PortfolioProvider>
       <DirSetter />
+      <DarkModeSetter />
       <PortfolioShell />
     </PortfolioProvider>
   );

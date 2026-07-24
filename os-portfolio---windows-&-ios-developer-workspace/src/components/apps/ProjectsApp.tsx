@@ -79,7 +79,7 @@ export const ProjectsApp: React.FC = () => {
             <div key={p.id} onClick={() => setActiveProject(p)}
               className="group bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:bg-white/10 hover:border-white/20 transition cursor-pointer flex flex-col">
               <div className="relative h-44 bg-slate-900 overflow-hidden">
-                <img src={p.imageUrl} alt={p.title}
+                <img src={p.imageUrl} alt={p.title} loading="lazy"
                   className="w-full h-full object-cover group-hover:scale-105 transition duration-300 opacity-80 group-hover:opacity-100" />
                 <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2 py-0.5 rounded border border-white/10">
                   {p.category}
@@ -127,7 +127,7 @@ export const ProjectsApp: React.FC = () => {
               <X className="w-4 h-4" />
             </button>
             <div className="rounded-xl overflow-hidden h-52 bg-slate-800">
-              <img src={activeProject.imageUrl} alt={activeProject.title} className="w-full h-full object-cover" />
+              <img src={activeProject.imageUrl} alt={activeProject.title} loading="lazy" className="w-full h-full object-cover" />
             </div>
             <div className="space-y-3">
               <div className="flex items-center gap-2">
@@ -189,7 +189,7 @@ export const ProjectsApp: React.FC = () => {
                     {allMedia[mediaIndex]?.type === 'video' ? (
                       <video src={allMedia[mediaIndex].url} controls className="w-full h-full object-contain" />
                     ) : (
-                      <img src={allMedia[mediaIndex].url} alt="" className="w-full h-full object-contain" />
+                      <img src={allMedia[mediaIndex].url} alt="" loading="lazy" className="w-full h-full object-contain" />
                     )}
                   </div>
                   {allMedia.length > 1 && (

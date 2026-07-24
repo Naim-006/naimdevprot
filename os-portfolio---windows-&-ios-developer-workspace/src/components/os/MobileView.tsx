@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo, Suspense, lazy } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { usePortfolio } from '../../context/PortfolioContext';
 import { SYSTEM_APPS, WALLPAPERS } from '../../data/defaultData';
@@ -10,16 +10,18 @@ import {
 } from 'lucide-react';
 import { SpotlightModal } from './SpotlightModal';
 import { WelcomeTourModal } from './WelcomeTourModal';
-import { AboutApp } from '../apps/AboutApp';
-import { SkillsApp } from '../apps/SkillsApp';
-import { ProjectsApp } from '../apps/ProjectsApp';
-import { ExperienceApp } from '../apps/ExperienceApp';
-import { TestimonialsApp } from '../apps/TestimonialsApp';
-import { ContactApp } from '../apps/ContactApp';
-import { BlogApp } from '../apps/BlogApp';
-import { TerminalApp } from '../apps/TerminalApp';
-import { SettingsApp } from '../apps/SettingsApp';
-import { AdminApp } from '../apps/AdminApp';
+
+const AboutApp = lazy(() => import('../apps/AboutApp').then(m => ({ default: m.AboutApp })));
+const SkillsApp = lazy(() => import('../apps/SkillsApp').then(m => ({ default: m.SkillsApp })));
+const ProjectsApp = lazy(() => import('../apps/ProjectsApp').then(m => ({ default: m.ProjectsApp })));
+const ExperienceApp = lazy(() => import('../apps/ExperienceApp').then(m => ({ default: m.ExperienceApp })));
+const TestimonialsApp = lazy(() => import('../apps/TestimonialsApp').then(m => ({ default: m.TestimonialsApp })));
+const ContactApp = lazy(() => import('../apps/ContactApp').then(m => ({ default: m.ContactApp })));
+const BlogApp = lazy(() => import('../apps/BlogApp').then(m => ({ default: m.BlogApp })));
+const TerminalApp = lazy(() => import('../apps/TerminalApp').then(m => ({ default: m.TerminalApp })));
+const SettingsApp = lazy(() => import('../apps/SettingsApp').then(m => ({ default: m.SettingsApp })));
+const AdminApp = lazy(() => import('../apps/AdminApp').then(m => ({ default: m.AdminApp })));
+const GameHubApp = lazy(() => import('../apps/GameHubApp').then(m => ({ default: m.GameHubApp })));
 
 interface FolderGroup {
   id: string;
@@ -36,7 +38,7 @@ const FOLDERS: FolderGroup[] = [
   { id: 'system', name: 'System', icon: Folder, bgGradient: 'from-slate-500 to-slate-700', apps: ['admin', 'settings'] },
 ];
 
-const STANDALONE_APPS: AppId[] = ['terminal'];
+const STANDALONE_APPS: AppId[] = ['terminal', 'gamehub'];
 
 interface AppInfoData {
   developer: string;
@@ -92,23 +94,24 @@ const AppInfoModal = React.memo(function AppInfoModal({
     >
       <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
         transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+        style={{ willChange: 'transform' }}
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md bg-[#1c1c24] rounded-t-3xl border-t border-white/10 shadow-2xl max-h-[85vh] overflow-y-auto pb-6 scrollbar-none"
+        className="w-full max-w-md bg-white dark:bg-[#1c1c24] rounded-t-3xl border-t border-gray-200 dark:border-white/10 shadow-2xl max-h-[85vh] overflow-y-auto pb-6 scrollbar-none"
       >
-        <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-white/5">
-          <span className="text-sm font-bold text-white">App Info</span>
-          <button onClick={onClose} className="p-1.5 rounded-full bg-white/10 hover:bg-white/20 transition">
-            <X className="w-4 h-4 text-slate-400" />
+        <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-gray-200 dark:border-white/5">
+          <span className="text-sm font-bold text-gray-900 dark:text-white">App Info</span>
+          <button onClick={onClose} className="p-1.5 rounded-full bg-gray-200 dark:bg-white/10 hover:bg-gray-300 dark:hover:bg-white/20 transition">
+            <X className="w-4 h-4 text-gray-500 dark:text-slate-400" />
           </button>
         </div>
 
-        <div className="flex items-center gap-4 px-5 py-5 border-b border-white/5">
+        <div className="flex items-center gap-4 px-5 py-5 border-b border-gray-200 dark:border-white/5">
           <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${app.bgGradient} flex items-center justify-center shadow-xl`}>
             <IconHelper name={app.iconName} className="w-8 h-8 text-white" />
           </div>
           <div>
-            <h2 className="text-base font-bold text-white">{app.title}</h2>
-            <p className="text-xs text-slate-400 mt-0.5">{info.category}</p>
+            <h2 className="text-base font-bold text-gray-900 dark:text-white">{app.title}</h2>
+            <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">{info.category}</p>
             <div className="flex items-center gap-1 mt-1">
               {[1,2,3,4,5].map((i) => (
                 <Star key={i} className={`w-3 h-3 ${i <= Math.floor(info.rating) ? 'fill-amber-400 text-amber-400' : 'text-slate-600'}`} />
@@ -157,7 +160,7 @@ const LongPressMenuPopup: React.FC<{ menu: LongPressMenu; onClose: () => void; o
     const handler = (e: PointerEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) onClose();
     };
-    document.addEventListener('pointerdown', handler);
+    document.addEventListener('pointerdown', handler, { passive: true });
     return () => document.removeEventListener('pointerdown', handler);
   }, [onClose]);
 
@@ -181,10 +184,10 @@ const LongPressMenuPopup: React.FC<{ menu: LongPressMenu; onClose: () => void; o
       exit={{ opacity: 0, scale: 0.9 }}
       transition={{ type: 'spring', stiffness: 400, damping: 30 }}
       className="fixed z-[100]"
-      style={{ left: Math.min(menu.x, window.innerWidth - 200), top: Math.min(menu.y, window.innerHeight - 280) }}
+      style={{ left: Math.min(menu.x, window.innerWidth - 200), top: Math.min(menu.y, window.innerHeight - 280), willChange: 'transform, opacity' }}
     >
-      <div className="bg-[#1c1c24]/95 backdrop-blur-2xl rounded-2xl border border-white/10 shadow-2xl shadow-black/40 w-48 overflow-hidden">
-        <div className="px-3.5 py-2.5 flex items-center gap-2.5 border-b border-white/5">
+      <div className="bg-white/95 dark:bg-[#1c1c24]/95 backdrop-blur-2xl rounded-2xl border border-gray-200 dark:border-white/10 shadow-2xl shadow-black/40 w-48 overflow-hidden">
+        <div className="px-3.5 py-2.5 flex items-center gap-2.5 border-b border-gray-200 dark:border-white/5">
           <div className={`w-7 h-7 rounded-xl bg-gradient-to-br ${menu.target.gradient} flex items-center justify-center`}>
             {menu.target.iconName ? (
               <IconHelper name={menu.target.iconName as any} className="w-3.5 h-3.5 text-white" />
@@ -192,14 +195,14 @@ const LongPressMenuPopup: React.FC<{ menu: LongPressMenu; onClose: () => void; o
               <Folder className="w-3.5 h-3.5 text-white" />
             )}
           </div>
-          <span className="text-xs font-bold text-white truncate">{menu.target.name}</span>
+          <span className="text-xs font-bold text-gray-900 dark:text-white truncate">{menu.target.name}</span>
         </div>
         <div className="py-1">
           {actions.map((a) => (
             <button key={a.id} onClick={() => { onAction(a.id, menu.target); onClose(); }}
-              className={`w-full flex items-center gap-3 px-3.5 py-2.5 text-xs font-medium transition hover:bg-white/5 active:bg-white/10 ${a.color || 'text-slate-200'}`}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 text-xs font-medium transition hover:bg-black/10 dark:hover:bg-white/5 active:bg-black/15 dark:active:bg-white/10 ${a.color || 'text-gray-700 dark:text-slate-200'}`}
             >
-              <a.icon className={`w-4 h-4 ${a.color ? a.color : 'text-slate-500'}`} />
+              <a.icon className={`w-4 h-4 ${a.color ? a.color : 'text-gray-500 dark:text-slate-500'}`} />
               {a.label}
             </button>
           ))}
@@ -222,6 +225,7 @@ const FolderAppBtn = React.memo(function FolderAppBtn({
   app: typeof SYSTEM_APPS[0]; appId: AppId; onOpenApp: (id: AppId) => void; onLongPressApp: (e: React.PointerEvent, id: AppId) => void;
 }) {
   const tRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (tRef.current) { clearTimeout(tRef.current); } }, []);
   return (
     <button
       onClick={() => onOpenApp(appId)}
@@ -247,6 +251,7 @@ const FolderIcon = React.memo(function FolderIcon({
   const apps = folder.apps.slice(0, 4);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const movedRef = useRef(false);
+  useEffect(() => () => { if (timerRef.current) { clearTimeout(timerRef.current); } }, []);
 
   return (
     <button
@@ -285,6 +290,7 @@ const AppIconBtn = React.memo(function AppIconBtn({
 }) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const movedRef = useRef(false);
+  useEffect(() => () => { if (timerRef.current) { clearTimeout(timerRef.current); } }, []);
   const iconSize = size === 'small' ? 'w-12 h-12 rounded-xl' : 'w-14 h-14 rounded-2xl';
   const imgSize = size === 'small' ? 'w-6 h-6' : 'w-7 h-7';
   const labelSize = size === 'small' ? 'text-[9px]' : 'text-[10px]';
@@ -322,6 +328,7 @@ const FolderView = React.memo(function FolderView({
     >
       <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.8, opacity: 0 }}
         transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+        style={{ willChange: 'transform, opacity' }}
         onClick={(e) => e.stopPropagation()} className="flex flex-col items-center gap-8"
       >
         <span className="text-sm font-bold text-white/70 tracking-wider">{folder.name}</span>
@@ -359,6 +366,8 @@ export const MobileView: React.FC = () => {
   const [removedToast, setRemovedToast] = useState<{ appId: AppId; name: string } | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const swipeStartRef = useRef(0);
+  const swipeOffsetRef = useRef(0);
+  const swipeRafRef = useRef<number>(0);
   const appSheetRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -367,7 +376,7 @@ export const MobileView: React.FC = () => {
       setTimeStr(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
     };
     updateTime();
-    const timer = setInterval(updateTime, 1000);
+    const timer = setInterval(updateTime, 15000);
     return () => clearInterval(timer);
   }, []);
 
@@ -433,7 +442,7 @@ export const MobileView: React.FC = () => {
 
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-cover bg-center select-none font-sans flex flex-col justify-between" style={wpStyle}>
-      <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px] pointer-events-none" />
+      <div className="absolute inset-0 bg-black/40 dark:bg-black/30 backdrop-blur-[2px] pointer-events-none" />
       {brightness < 100 && <div className="absolute inset-0 bg-black pointer-events-none z-[90] transition-opacity duration-150" style={{ opacity: (100 - brightness) / 110 }} />}
       {nightLight && <div className="absolute inset-0 bg-amber-500/10 mix-blend-color-burn pointer-events-none z-[89] transition-opacity duration-200" />}
 
@@ -446,7 +455,7 @@ export const MobileView: React.FC = () => {
       <div className="relative z-20 flex-1 px-5 pt-4 pb-20 overflow-y-auto space-y-6 scrollbar-none">
         <div className="grid grid-cols-2 gap-4">
           <div onClick={() => openApp('about')}
-            className="bg-white/20 dark:bg-black/40 backdrop-blur-xl p-4 rounded-3xl border border-white/20 text-white shadow-xl cursor-pointer hover:scale-[1.02] transition space-y-2 flex flex-col justify-between"
+            className="bg-black/30 dark:bg-black/40 backdrop-blur-xl p-4 rounded-3xl border border-white/20 text-white shadow-xl cursor-pointer hover:scale-[1.02] transition space-y-2 flex flex-col justify-between"
           >
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-bold tracking-widest uppercase opacity-80">PROFILE</span>
@@ -474,10 +483,10 @@ export const MobileView: React.FC = () => {
         </div>
 
         <div onClick={toggleSpotlight}
-          className="bg-white/20 dark:bg-black/30 backdrop-blur-md text-white text-xs px-4 py-2.5 rounded-2xl flex items-center justify-between border border-white/20 shadow-sm cursor-pointer active:scale-[0.98] transition"
+          className="bg-black/20 dark:bg-black/30 backdrop-blur-md text-white text-xs px-4 py-2.5 rounded-2xl flex items-center justify-between border border-white/20 shadow-sm cursor-pointer active:scale-[0.98] transition"
         >
-          <div className="flex items-center gap-2"><Search className="w-4 h-4 text-slate-200" /><span className="text-slate-200 font-medium">{t('common.search')}</span></div>
-          <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-md font-medium">Spotlight</span>
+          <div className="flex items-center gap-2"><Search className="w-4 h-4 text-white/70" /><span className="text-white/70 font-medium">{t('common.search')}</span></div>
+          <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-md font-medium text-white/80">Spotlight</span>
         </div>
 
         {/* Folders + Standalone Apps Grid */}
@@ -501,7 +510,7 @@ export const MobileView: React.FC = () => {
 
       {/* Dock */}
       <div className="relative z-30 pb-4 px-6">
-        <div className="bg-white/20 dark:bg-black/40 backdrop-blur-2xl p-3 rounded-3xl border border-white/20 shadow-2xl flex items-center justify-around">
+        <div className="bg-black/30 dark:bg-black/40 backdrop-blur-2xl p-3 rounded-3xl border border-white/20 shadow-2xl flex items-center justify-around">
           {visibleDockApps.map((app) => (
             <button key={app.id} onClick={() => openApp(app.id as AppId)}
               className="group transition transform active:scale-95"
@@ -524,8 +533,8 @@ export const MobileView: React.FC = () => {
             transition={{ type: 'spring', stiffness: 300, damping: 28 }}
             className="absolute bottom-24 left-4 right-4 z-50 flex justify-center pointer-events-none"
           >
-            <div className="bg-[#1c1c24]/95 backdrop-blur-2xl rounded-2xl border border-white/10 shadow-2xl px-5 py-3 pointer-events-auto">
-              <p className="text-xs text-white text-center"><span className="font-semibold">{removedToast.name}</span> uninstalled</p>
+            <div className="bg-white/95 dark:bg-[#1c1c24]/95 backdrop-blur-2xl rounded-2xl border border-gray-200 dark:border-white/10 shadow-2xl px-5 py-3 pointer-events-auto">
+              <p className="text-xs text-gray-900 dark:text-white text-center"><span className="font-semibold">{removedToast.name}</span> uninstalled</p>
             </div>
           </motion.div>
         )}
@@ -592,29 +601,48 @@ export const MobileView: React.FC = () => {
           <motion.div ref={appSheetRef}
             initial={{ y: '100%' }} animate={{ y: Math.max(0, swipeOffset) }} exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+            style={{ willChange: 'transform' }}
             onPointerDown={(e) => { swipeStartRef.current = e.clientY; }}
-            onPointerMove={(e) => { const d = e.clientY - swipeStartRef.current; if (d > 0) setSwipeOffset(d); }}
-            onPointerUp={(e) => { if (e.clientY - swipeStartRef.current > 120) closeApp(); setSwipeOffset(0); }}
-            className="fixed inset-0 z-50 bg-[#121212] text-white flex flex-col"
+            onPointerMove={(e) => {
+              const d = e.clientY - swipeStartRef.current;
+              if (d > 0) {
+                swipeOffsetRef.current = d;
+                if (!swipeRafRef.current) {
+                  swipeRafRef.current = requestAnimationFrame(() => {
+                    setSwipeOffset(swipeOffsetRef.current);
+                    swipeRafRef.current = 0;
+                  });
+                }
+              }
+            }}
+            onPointerUp={(e) => {
+              if (swipeRafRef.current) { cancelAnimationFrame(swipeRafRef.current); swipeRafRef.current = 0; }
+              if (e.clientY - swipeStartRef.current > 120) closeApp();
+              setSwipeOffset(0);
+            }}
+            className="fixed inset-0 z-50 bg-white dark:bg-[#121212] text-gray-900 dark:text-white flex flex-col"
           >
-            <div className="px-4 py-3 bg-[#1e1e24] border-b border-white/10 flex items-center justify-between">
-              <button onClick={closeApp} className="flex items-center gap-1 text-xs font-bold text-blue-400">
+            <div className="px-4 py-3 bg-gray-100 dark:bg-[#1e1e24] border-b border-gray-200 dark:border-white/10 flex items-center justify-between">
+              <button onClick={closeApp} className="flex items-center gap-1 text-xs font-bold text-blue-500 dark:text-blue-400">
                 <ChevronLeft className="w-4 h-4" /><span>Home</span>
               </button>
-              <span className="text-xs font-bold text-white capitalize">{SYSTEM_APPS.find((a) => a.id === activeAppId)?.title || activeAppId}</span>
-              <button onClick={closeApp} className="text-xs font-bold text-slate-400 hover:text-white">Done</button>
+              <span className="text-xs font-bold text-gray-900 dark:text-white capitalize">{SYSTEM_APPS.find((a) => a.id === activeAppId)?.title || activeAppId}</span>
+              <button onClick={closeApp} className="text-xs font-bold text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white">Done</button>
             </div>
-            <div className="flex-1 overflow-y-auto pb-8 bg-[#121212] text-white">
-              {activeAppId === 'about' && <AboutApp />}
-              {activeAppId === 'skills' && <SkillsApp />}
-              {activeAppId === 'projects' && <ProjectsApp />}
-              {activeAppId === 'experience' && <ExperienceApp />}
-              {activeAppId === 'testimonials' && <TestimonialsApp />}
-              {activeAppId === 'contact' && <ContactApp />}
-              {activeAppId === 'blog' && <BlogApp />}
-              {activeAppId === 'terminal' && <TerminalApp />}
-              {activeAppId === 'settings' && <SettingsApp />}
-              {activeAppId === 'admin' && <AdminApp />}
+            <div className="flex-1 overflow-y-auto pb-8 bg-gray-50 dark:bg-[#121212] text-gray-900 dark:text-white app-content-panel">
+              <Suspense fallback={<div className="p-8 text-center text-slate-400 text-sm">Loading...</div>}>
+                {activeAppId === 'about' && <AboutApp />}
+                {activeAppId === 'skills' && <SkillsApp />}
+                {activeAppId === 'projects' && <ProjectsApp />}
+                {activeAppId === 'experience' && <ExperienceApp />}
+                {activeAppId === 'testimonials' && <TestimonialsApp />}
+                {activeAppId === 'contact' && <ContactApp />}
+                {activeAppId === 'blog' && <BlogApp />}
+                {activeAppId === 'terminal' && <TerminalApp />}
+                {activeAppId === 'settings' && <SettingsApp />}
+                {activeAppId === 'admin' && <AdminApp />}
+                {activeAppId === 'gamehub' && <GameHubApp />}
+              </Suspense>
             </div>
             <div onPointerDown={(e) => { swipeStartRef.current = e.clientY; }}
               onPointerMove={(e) => {
@@ -623,9 +651,9 @@ export const MobileView: React.FC = () => {
                   setShowAppSwitcher(true);
                 }
               }}
-              className="py-2 flex items-center justify-center bg-[#1e1e24] cursor-pointer active:bg-[#2a2a30] transition-colors"
+              className="py-2 flex items-center justify-center bg-gray-100 dark:bg-[#1e1e24] cursor-pointer active:bg-gray-200 dark:active:bg-[#2a2a30] transition-colors"
             >
-              <div className="w-32 h-1 bg-slate-500 rounded-full" style={{ width: `${Math.max(32, 128 - swipeOffset)}px` }} />
+              <div className="w-32 h-1 bg-gray-400 dark:bg-slate-500 rounded-full" style={{ width: `${Math.max(32, 128 - swipeOffsetRef.current)}px` }} />
             </div>
           </motion.div>
         )}

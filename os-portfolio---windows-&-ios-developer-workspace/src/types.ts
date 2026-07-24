@@ -9,7 +9,8 @@ export type AppId =
   | 'blog'
   | 'terminal'
   | 'settings'
-  | 'admin';
+  | 'admin'
+  | 'gamehub';
 
 export type OSMode = 'desktop' | 'mobile' | 'auto';
 

@@ -1,6 +1,49 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @keyframes gradient {
   0%, 100% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+}
+
+.animate-shake { animation: shake 0.3s ease-in-out; }
+
+* { touch-action: manipulation; }
+
+.scrollbar-none::-webkit-scrollbar { display: none; }
+.scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+
+.scrollbar-thin::-webkit-scrollbar { width: 6px; }
+.scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+.scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+.scrollbar-thin::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
+
+/* Light mode — flip translucent overlays that sit on light backgrounds */
+:root:not(.dark) .bg-white\/5 { background-color: rgba(0,0,0,0.04); }
+:root:not(.dark) .bg-white\/10 { background-color: rgba(0,0,0,0.06); }
+:root:not(.dark) .bg-white\/12 { background-color: rgba(0,0,0,0.07); }
+:root:not(.dark) .bg-white\/15 { background-color: rgba(0,0,0,0.09); }
+:root:not(.dark) .bg-white\/20 { background-color: rgba(0,0,0,0.11); }
+:root:not(.dark) .border-white\/5 { border-color: rgba(0,0,0,0.06); }
+:root:not(.dark) .border-white\/10 { border-color: rgba(0,0,0,0.10); }
+:root:not(.dark) .border-white\/15 { border-color: rgba(0,0,0,0.12); }
+:root:not(.dark) .border-white\/20 { border-color: rgba(0,0,0,0.15); }
+
+/* Light mode — flip text only inside app content panels (not on wallpaper) */
+:root:not(.dark) .app-content-panel .text-white { color: #0f172a; }
+:root:not(.dark) .app-content-panel .text-slate-100 { color: #1e293b; }
+:root:not(.dark) .app-content-panel .text-slate-200 { color: #334155; }
+:root:not(.dark) .app-content-panel .text-slate-300 { color: #475569; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }

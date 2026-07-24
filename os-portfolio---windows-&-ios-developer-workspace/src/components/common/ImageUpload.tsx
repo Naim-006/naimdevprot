@@ -52,7 +52,7 @@ export const ImageUpload: React.FC<Props> = ({ currentUrl, folder, onUrlChange, 
       <div className="flex items-center gap-2">
         {currentUrl ? (
           <div className="relative group w-10 h-10 rounded-lg overflow-hidden bg-white/10 border border-white/10 shrink-0">
-            <img src={currentUrl} alt="" className="w-full h-full object-cover" />
+            <img src={currentUrl} alt="" loading="lazy" className="w-full h-full object-cover" />
             <button
               type="button"
               onClick={handleRemove}

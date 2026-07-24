@@ -40,209 +40,142 @@ export const ControlCenter: React.FC = () => {
   return (
     <div
       onClick={(e) => e.stopPropagation()}
-      className="fixed bottom-14 right-4 sm:right-12 w-80 sm:w-88 bg-[#18181b]/95 backdrop-blur-2xl rounded-2xl border border-white/20 shadow-2xl p-4 z-50 space-y-3 animate-in fade-in slide-in-from-bottom-3 duration-200 select-none text-white"
+      className="fixed bottom-14 right-4 sm:right-12 w-80 sm:w-88 bg-white/90 dark:bg-[#18181b]/95 backdrop-blur-2xl rounded-2xl border border-gray-200/80 dark:border-white/20 shadow-2xl p-4 z-50 space-y-3 animate-in fade-in slide-in-from-bottom-3 duration-200 select-none text-gray-900 dark:text-white"
     >
-      {/* Header */}
-      <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
-        <h3 className="text-xs font-bold flex items-center gap-2 text-blue-400">
+      <div className="flex items-center justify-between border-b border-gray-200 dark:border-white/10 pb-2.5">
+        <h3 className="text-xs font-bold flex items-center gap-2 text-blue-500 dark:text-blue-400">
           <Sliders className="w-3.5 h-3.5" />
           <span>{t('cc.title')}</span>
         </h3>
         <button
           onClick={() => { openTour(); toggleControlCenter(); }}
-          className="text-[10px] flex items-center gap-1 text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 px-2 py-1 rounded-md border border-amber-500/20 transition"
+          className="text-[10px] flex items-center gap-1 text-amber-600 dark:text-amber-300 bg-amber-100 dark:bg-amber-500/10 hover:bg-amber-200 dark:hover:bg-amber-500/20 px-2 py-1 rounded-md border border-amber-300 dark:border-amber-500/20 transition"
         >
           <Info className="w-3 h-3" />
           <span>{t('tray.tour')}</span>
         </button>
       </div>
 
-      {/* Quick Toggles Grid (3 columns, Win11 style) */}
       <div className="grid grid-cols-3 gap-2">
-        {/* Wi-Fi */}
         <button
           onClick={toggleWifi}
           className={`p-3 rounded-xl border text-xs font-semibold flex flex-col items-center gap-1.5 transition ${
             wifiConnected
               ? 'bg-blue-600/80 border-blue-500/60 text-white shadow-md'
-              : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10'
+              : 'bg-black/5 dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-500 dark:text-slate-400 hover:bg-black/10 dark:hover:bg-white/10'
           }`}
         >
-          {wifiConnected ? <Wifi className="w-5 h-5" /> : <WifiOff className="w-5 h-5 text-rose-400" />}
-          <span className="text-[10px] font-bold">{t('cc.wifi')}</span>
-          <span className={`text-[8px] ${wifiConnected ? 'text-blue-200' : 'text-slate-500'}`}>
-            {wifiConnected ? t('cc.connected') : t('cc.off')}
-          </span>
+          {wifiConnected ? <Wifi className="w-5 h-5" /> : <WifiOff className="w-5 h-5" />}
+          <span>Wi-Fi</span>
         </button>
 
-        {/* Bluetooth */}
         <button
-          onClick={() => setBluetoothOn(!bluetoothOn)}
+          onClick={() => { updateSettings({ darkMode: !settings.darkMode }); }}
+          className={`p-3 rounded-xl border text-xs font-semibold flex flex-col items-center gap-1.5 transition ${
+            settings.darkMode
+              ? 'bg-indigo-600/80 border-indigo-500/60 text-white shadow-md'
+              : 'bg-black/5 dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-500 dark:text-slate-400 hover:bg-black/10 dark:hover:bg-white/10'
+          }`}
+        >
+          {settings.darkMode ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+          <span>Theme</span>
+        </button>
+
+        <button
+          onClick={() => setBluetoothOn((p) => !p)}
           className={`p-3 rounded-xl border text-xs font-semibold flex flex-col items-center gap-1.5 transition ${
             bluetoothOn
               ? 'bg-blue-600/80 border-blue-500/60 text-white shadow-md'
-              : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10'
+              : 'bg-black/5 dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-500 dark:text-slate-400 hover:bg-black/10 dark:hover:bg-white/10'
           }`}
         >
           {bluetoothOn ? <BluetoothConnected className="w-5 h-5" /> : <Bluetooth className="w-5 h-5" />}
-          <span className="text-[10px] font-bold">{t('cc.bluetooth')}</span>
-          <span className={`text-[8px] ${bluetoothOn ? 'text-blue-200' : 'text-slate-500'}`}>
-            {bluetoothOn ? t('cc.on') : t('cc.off')}
-          </span>
+          <span>Bluetooth</span>
         </button>
+      </div>
 
-        {/* Night Light */}
+      <div className="grid grid-cols-2 gap-2">
+        <div className="bg-black/5 dark:bg-white/5 p-3 rounded-xl border border-gray-200 dark:border-white/10 space-y-2">
+          <div className="flex items-center justify-between text-xs">
+            <div className="flex items-center gap-1.5 text-gray-500 dark:text-slate-300">
+              <Sun className="w-3.5 h-3.5" />
+              <span>Brightness</span>
+            </div>
+            <span className="text-xs font-semibold text-gray-700 dark:text-slate-200">{brightness}%</span>
+          </div>
+          <input type="range" min="20" max="100" value={brightness}
+            onChange={(e) => setBrightness(parseInt(e.target.value))}
+            className="w-full accent-blue-500" />
+        </div>
+
+        <div className="bg-black/5 dark:bg-white/5 p-3 rounded-xl border border-gray-200 dark:border-white/10 space-y-2">
+          <div className="flex items-center justify-between text-xs">
+            <div className="flex items-center gap-1.5 text-gray-500 dark:text-slate-300">
+              {volume > 0 ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
+              <span>Volume</span>
+            </div>
+            <span className="text-xs font-semibold text-gray-700 dark:text-slate-200">{volume}%</span>
+          </div>
+          <input type="range" min="0" max="100" value={volume}
+            onChange={(e) => setVolume(parseInt(e.target.value))}
+            className="w-full accent-blue-500" />
+        </div>
+      </div>
+
+      <div className="bg-black/5 dark:bg-white/5 rounded-xl border border-gray-200 dark:border-white/10 p-3 flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <div className={`p-1.5 rounded-lg ${nightLight ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400' : 'text-gray-400 dark:text-slate-500'}`}>
+            <Moon className="w-4 h-4" />
+          </div>
+          <div>
+            <div className="text-xs font-semibold text-gray-700 dark:text-slate-200">Night Light</div>
+            <div className="text-[10px] text-gray-500 dark:text-slate-400">Warm tint, reduced blue light</div>
+          </div>
+        </div>
         <button
           onClick={toggleNightLight}
-          className={`p-3 rounded-xl border text-xs font-semibold flex flex-col items-center gap-1.5 transition ${
-            nightLight
-              ? 'bg-amber-600/80 border-amber-500/60 text-white shadow-md'
-              : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10'
+          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+            nightLight ? 'bg-amber-600 text-white' : 'bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-slate-200'
           }`}
         >
-          {nightLight ? <Moon className="w-5 h-5 text-amber-200" /> : <Moon className="w-5 h-5 text-slate-400" />}
-          <span className="text-[10px] font-bold">{t('cc.nightLight')}</span>
-          <span className={`text-[8px] ${nightLight ? 'text-amber-200' : 'text-slate-500'}`}>
-            {nightLight ? t('cc.on') : t('cc.off')}
-          </span>
-        </button>
-
-        {/* Airplane Mode */}
-        <button
-          onClick={() => setAirplaneMode(!airplaneMode)}
-          className={`p-3 rounded-xl border text-xs font-semibold flex flex-col items-center gap-1.5 transition ${
-            airplaneMode
-              ? 'bg-amber-600/80 border-amber-500/60 text-white shadow-md'
-              : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10'
-          }`}
-        >
-          <Monitor className={`w-5 h-5 ${airplaneMode ? 'text-amber-200' : ''}`} />
-          <span className="text-[10px] font-bold">{t('cc.airplane')}</span>
-          <span className={`text-[8px] ${airplaneMode ? 'text-amber-200' : 'text-slate-500'}`}>
-            {airplaneMode ? t('cc.on') : t('cc.off')}
-          </span>
-        </button>
-
-        {/* Accessibility */}
-        <button
-          className="p-3 rounded-xl border border-white/10 text-xs font-semibold flex flex-col items-center gap-1.5 bg-white/5 hover:bg-white/10 text-slate-400 transition"
-        >
-          <Accessibility className="w-5 h-5" />
-          <span className="text-[10px] font-bold">{t('cc.accessibility')}</span>
-          <span className="text-[8px] text-slate-500">{t('cc.off')}</span>
-        </button>
-
-        {/* Battery Saver */}
-        <button
-          className={`p-3 rounded-xl border text-xs font-semibold flex flex-col items-center gap-1.5 transition ${
-            batteryCharging
-              ? 'bg-green-600/80 border-green-500/60 text-white shadow-md'
-              : batteryLevel < 20
-              ? 'bg-rose-600/80 border-rose-500/60 text-white shadow-md'
-              : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10'
-          }`}
-        >
-          <Battery className={`w-5 h-5 ${batteryCharging ? 'text-green-200' : ''}`} />
-          <span className="text-[10px] font-bold">{batteryCharging ? t('cc.charging') : t('cc.battery')}</span>
-          <span className={`text-[8px] ${batteryCharging ? 'text-green-200' : 'text-slate-500'}`}>{batteryLevel}%</span>
+          {nightLight ? 'On' : 'Off'}
         </button>
       </div>
 
-      {/* Brightness Slider */}
-      <div className="bg-white/5 p-2.5 rounded-xl border border-white/10">
-        <div className="flex items-center gap-2 text-[10px] font-medium text-slate-300 mb-1.5">
-          <Sun className="w-3.5 h-3.5 text-amber-400" />
-          <span>{t('cc.brightness')}</span>
-          <span className="ml-auto text-amber-400 font-bold">{brightness}%</span>
-        </div>
-        <input
-          type="range"
-          min="20"
-          max="100"
-          value={brightness}
-          onChange={(e) => setBrightness(Number(e.target.value))}
-          className="w-full accent-blue-500 cursor-pointer h-1.5 bg-white/20 rounded-lg appearance-none"
-        />
-      </div>
-
-      {/* Volume Slider */}
-      <div className="bg-white/5 p-2.5 rounded-xl border border-white/10">
-        <div className="flex items-center gap-2 text-[10px] font-medium text-slate-300 mb-1.5">
-          {volume > 0 ? <Volume2 className="w-3.5 h-3.5 text-blue-400" /> : <VolumeX className="w-3.5 h-3.5 text-slate-400" />}
-          <span>{t('cc.volume')}</span>
-          <span className="ml-auto text-blue-400 font-bold">{volume}%</span>
-        </div>
-        <input
-          type="range"
-          min="0"
-          max="100"
-          value={volume}
-          onChange={(e) => {
-            const val = Number(e.target.value);
-            setVolume(val);
-            if (val > 0 && settings.soundEnabled) soundEngine.playClick(true);
-          }}
-          className="w-full accent-blue-500 cursor-pointer h-1.5 bg-white/20 rounded-lg appearance-none"
-        />
-      </div>
-
-      {/* Bottom row: Sound toggle + Wallpaper */}
-      <div className="grid grid-cols-2 gap-2">
-        {/* Sound Effects */}
-        <div className="bg-white/5 border border-white/10 rounded-xl p-2.5 flex items-center justify-between">
-          <div className="flex items-center gap-1.5 text-[10px] font-semibold">
-            <Radio className="w-3 h-3 text-purple-400" />
-            <span>{t('cc.sound')}</span>
+      <div className="bg-black/5 dark:bg-white/5 rounded-xl border border-gray-200 dark:border-white/10 p-3 flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <div className="text-gray-400 dark:text-slate-500">
+            <Battery className={`w-5 h-5 ${batteryCharging ? 'text-green-500 dark:text-green-400' : batteryLevel > 20 ? 'text-gray-600 dark:text-green-400' : 'text-red-500'}`} />
           </div>
-          <button
-            onClick={() => {
-              const nextVal = !settings.soundEnabled;
-              updateSettings({ soundEnabled: nextVal });
-              if (nextVal) soundEngine.playNotification(true);
-            }}
-            className={`px-2 py-1 rounded-lg text-[9px] font-bold transition border ${
-              settings.soundEnabled
-                ? 'bg-blue-600 border-blue-500 text-white'
-                : 'bg-white/10 border-white/20 text-slate-400'
-            }`}
-          >
-            {settings.soundEnabled ? t('cc.on') : t('cc.off')}
-          </button>
-        </div>
-
-        {/* Wallpaper Quick Picker */}
-        <button onClick={() => setShowWpPicker(true)}
-          className="bg-white/5 border border-white/10 rounded-xl p-2.5 hover:bg-white/10 transition text-left">
-          <div className="text-[9px] font-bold text-slate-400 mb-1">{t('cc.wallpaper')}</div>
-          <div className="flex gap-1">
-            {WALLPAPERS.slice(0, 5).map((wp) => {
-              const isGrad = wp.url.startsWith('radial-gradient') || wp.url.startsWith('linear-gradient');
-              return (
-                <div key={wp.id}
-                  className={`flex-1 h-7 rounded-md overflow-hidden border ${settings.wallpaper === wp.id ? 'border-blue-500 ring-1 ring-blue-500/50' : 'border-white/10'}`}
-                  style={isGrad ? { background: wp.url } : undefined}
-                >
-                  {!isGrad && <img src={wp.url} alt="" className="w-full h-full object-cover" />}
-                </div>
-              );
-            })}
+          <div>
+            <div className="text-xs font-semibold text-gray-700 dark:text-slate-200">
+              Battery {batteryCharging && '(Charging)'}
+            </div>
+            <div className="text-[10px] text-gray-500 dark:text-slate-400">{batteryLevel}% remaining</div>
           </div>
+        </div>
+        <span className="text-xs font-bold text-gray-700 dark:text-slate-200">{batteryLevel}%</span>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2 pt-1">
+        <button
+          onClick={() => { openWindow('settings'); toggleControlCenter(); }}
+          className="bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border border-gray-200 dark:border-white/10 p-2.5 rounded-xl flex items-center justify-center gap-1.5 text-xs font-semibold text-gray-600 dark:text-slate-300 transition"
+        >
+          <Settings className="w-4 h-4" />
+          <span>Settings</span>
+        </button>
+
+        <button
+          onClick={() => { setShowWpPicker(true); }}
+          className="bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border border-gray-200 dark:border-white/10 p-2.5 rounded-xl flex items-center justify-center gap-1.5 text-xs font-semibold text-gray-600 dark:text-slate-300 transition"
+        >
+          <Monitor className="w-4 h-4" />
+          <span>Wallpaper</span>
         </button>
       </div>
 
       {showWpPicker && <WallpaperPickerModal onClose={() => setShowWpPicker(false)} />}
-
-      {/* All Settings Footer */}
-      <div className="pt-1">
-        <button
-          onClick={() => { openWindow('settings'); toggleControlCenter(); }}
-          className="w-full py-2.5 bg-white/10 hover:bg-white/20 border border-white/10 text-xs font-semibold text-white rounded-xl transition flex items-center justify-center gap-2"
-        >
-          <Settings className="w-3.5 h-3.5" />
-          <span>{t('cc.allSettings')}</span>
-          <ChevronRight className="w-3 h-3 text-slate-400" />
-        </button>
-      </div>
     </div>
   );
 };

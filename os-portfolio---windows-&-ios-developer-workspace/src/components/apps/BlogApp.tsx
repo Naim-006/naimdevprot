@@ -12,10 +12,16 @@ export const BlogApp: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchBlogPosts().then((posts) => {
-      setDevPosts(posts);
-      setLoading(false);
+    const controller = new AbortController();
+    fetchBlogPosts({ signal: controller.signal }).then((posts) => {
+      if (!controller.signal.aborted) {
+        setDevPosts(posts);
+        setLoading(false);
+      }
+    }).catch(() => {
+      if (!controller.signal.aborted) setLoading(false);
     });
+    return () => controller.abort();
   }, []);
 
   const allPosts = [...devPosts, ...blogs].filter(
@@ -49,7 +55,18 @@ export const BlogApp: React.FC = () => {
 
       {/* Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {filteredBlogs.length === 0 ? (
+        {loading ? (
+          Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden animate-pulse">
+              <div className="h-44 bg-slate-800" />
+              <div className="p-5 space-y-3">
+                <div className="h-3 bg-slate-700 rounded w-1/3" />
+                <div className="h-4 bg-slate-700 rounded w-3/4" />
+                <div className="h-3 bg-slate-700 rounded w-full" />
+              </div>
+            </div>
+          ))
+        ) : filteredBlogs.length === 0 ? (
           <div className="col-span-full text-center py-12 bg-white/5 rounded-2xl border border-white/10">
             <p className="text-slate-400 text-sm">No articles found.</p>
           </div>
@@ -58,7 +75,7 @@ export const BlogApp: React.FC = () => {
             <div key={post.id} onClick={() => setSelectedPost(post)}
               className="group bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:bg-white/10 hover:border-white/20 transition cursor-pointer flex flex-col">
               <div className="relative h-44 bg-slate-900 overflow-hidden">
-                <img src={post.coverImage} alt={post.title}
+                <img src={post.coverImage} alt={post.title} loading="lazy"
                   className="w-full h-full object-cover group-hover:scale-105 transition duration-500 opacity-80 group-hover:opacity-100" />
                 <div className="absolute top-3 left-3 bg-indigo-600/90 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg flex items-center gap-1 shadow-md">
                   <Tag className="w-3 h-3" />
@@ -100,7 +117,7 @@ export const BlogApp: React.FC = () => {
               <X className="w-4 h-4" />
             </button>
             <div className="rounded-xl overflow-hidden h-52 bg-slate-800">
-              <img src={selectedPost.coverImage} alt={selectedPost.title} className="w-full h-full object-cover" />
+              <img src={selectedPost.coverImage} alt={selectedPost.title} loading="lazy" className="w-full h-full object-cover" />
             </div>
             <div className="space-y-3">
               <div className="flex items-center gap-3 text-xs text-slate-400">

@@ -29,7 +29,7 @@ export const TestimonialsApp: React.FC = () => {
               <p className="text-xs md:text-sm text-slate-300 italic leading-relaxed">"{t.quote}"</p>
             </div>
             <div className="flex items-center gap-3 pt-4 border-t border-white/10">
-              <img src={t.avatarUrl} alt={t.clientName}
+              <img src={t.avatarUrl} alt={t.clientName} loading="lazy"
                 className="w-10 h-10 rounded-full object-cover border-2 border-pink-500/30" />
               <div>
                 <h4 className="text-xs font-bold text-white">{t.clientName}</h4>
